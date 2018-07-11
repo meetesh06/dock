@@ -109,6 +109,7 @@ router.post("/auth/android/signin", (req, res) => {
     });
     const token_payload = {
       email: email,
+      temp: true,
       pin: encryptedPin
     };
     jwt.sign(token_payload, APP_SECRET_KEY, { expiresIn: "2h" }, function(err, token) {
@@ -171,7 +172,8 @@ router.post("/auth/android/verify", (req, res) => {
               const token = jwt.sign({
                 email: req.body.email,
                 college: decoded.college,
-                newUser: true
+                newUser: true,
+                temp: true
               },
               APP_SECRET_KEY, {
                 expiresIn: "2h"
