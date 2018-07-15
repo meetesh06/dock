@@ -9,11 +9,13 @@ const bodyParser = require("body-parser");
 const jwt = require("jsonwebtoken");
 const constants = require("../../constants");
 const cryptr = require("cryptr");
+const passwordHash = require("password-hash");
 
 const cryptrObject = new cryptr(APP_SECRET_KEY);
 const sendEmailHtml = actions.sendEmailHtml;
 const verifyTempToken = actions.verifyTempToken;
 const TABLE_USERS = constants.TABLE_USERS;
+const TABLE_USERS_ADMIN = constants.TABLE_USERS_ADMIN;
 const dbo = db.getDb();
 const router = express.Router();
 
@@ -25,6 +27,8 @@ router.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 // Here we take care of the distribution of the tokens so it it very important to
 // make sure checks are as good as possible, though things might slip just keep an
 // eye out.
+// These routes only operate on temporary tokens but they hand out permanent or session tokens to
+// the users
 
 // Things to consider: 
 //  This API is responsible for the safety of all the other routes
@@ -81,6 +85,16 @@ router.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 //   1) error - boolean
 //   2) token - string
 //   3) mssg - string
+//
+// 4) /auth/android/manager/signin ->
+// expects
+//   1) email - string
+//   2) password - string
+// replies:
+//   1) error - boolean
+//   2) token - string
+//   3) mssg - string
+//
 
 router.post("/auth/android/signin", (req, res) => {
   if (!req.body) return res.json({
@@ -216,9 +230,7 @@ router.post("/auth/android/new-user", (req, res) => {
             mssg: "Invalid request"
           });
         }
-        if(gender === "M" || gender === "F") {
-          console.log("gender cannot be invalid, we need this to be right");
-        } else {
+        if(!(gender === "M" || gender === "F")) {
           return res.json({
             error: true,
             mssg: "invalid email"
@@ -242,7 +254,7 @@ router.post("/auth/android/new-user", (req, res) => {
           roll_no
         }, params, {
           upsert: true
-        }, function(err, data) {
+        }, function(err) {
           if (err) {
             return res.json({
               error: true,
@@ -272,6 +284,77 @@ router.post("/auth/android/new-user", (req, res) => {
           mssg: "Token Verification failed."
         });
       }
+    }
+  });
+});
+
+router.post("/auth/android/manager/signin", (req, res) => {
+  if (!req.body) return res.json({
+    error: true,
+    mssg: "missing fields"
+  });
+  const email = req.body.email;
+  const password = req.body.password;
+  if ( email === undefined || password === undefined ) {
+    return res.json({
+      error: true,
+      mssg: "missing fields"
+    });
+  }
+  if (!emailValidator.validate(email)) {
+    return res.json({
+      error: true,
+      mssg: "invalid email"
+    });
+  }
+  // do the login part here
+  dbo.collection(TABLE_USERS_ADMIN).findOne({
+    email
+  }, function(err, data) {
+    if (err) {
+      return res.json({
+        error: true,
+        mssg: "invalid username/password combination"
+      });
+    }
+    if (data) {
+      if (passwordHash.verify(password, data.password)) {
+        const token_payload = {
+          email: data.email,
+          name: data.name,
+          college: data.college,
+          scope: data.scope,
+          limits: data.limits,
+          manager: true
+        };
+        jwt.sign(token_payload, APP_SECRET_KEY, { expiresIn: "100d" }, function(err, token) {
+          if(err) {
+            return res.json({
+              error: true,
+              mssg: "error signing token"
+            });
+          }
+          return res.json({
+            error: false,
+            token,
+            bundle: {
+              hash: data.hash,
+              events: [],
+              notifications: []
+            }
+          });
+        });
+      } else {
+        return res.json({
+          error: true,
+          mssg: "invalid username/password combination"
+        });
+      }
+    } else {
+      return res.json({
+        error: true,
+        mssg: "invalid username/password combination"
+      });
     }
   });
 });

@@ -35,12 +35,24 @@ exports.verifyTempToken = function(req, callback) {
     return callback(true);
   });
 };
-exports.verifyToken = function(req, callback) {
+
+exports.verifyManagerToken = function(req, callback) {
+  var token = req.headers["x-access-token"];
+  if (!token) return callback(true);
+  jwt.verify(token, APP_SECRET_KEY, function(err, decoded) {
+    if (err) return callback(true);
+    if ( decoded && decoded.manager === true ) return callback(false, decoded);
+    return callback(true);
+  });
+};
+
+exports.verifyUserToken = function(req, callback) {
   var token = req.headers["x-access-token"];
   if (!token) return callback(true);
   jwt.verify(token, APP_SECRET_KEY, function(err, decoded) {
     if (err) return callback(true);
     if ( decoded && decoded.temp === true ) return callback(true);
+    if ( decoded && decoded.manager === true ) return callback(true);
     return callback(false, decoded);
   });
 };
