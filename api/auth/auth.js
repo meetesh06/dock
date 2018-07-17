@@ -170,7 +170,8 @@ router.post("/auth/android/verify", (req, res) => {
                 roll_no: result.roll_no,
                 college: decoded.college,
                 name: result.username,
-                scope: result.scope
+                scope: result.scope,
+                user: true
               },
               APP_SECRET_KEY, {
                 expiresIn: "100d"
@@ -266,7 +267,8 @@ router.post("/auth/android/new-user", (req, res) => {
               name : username,
               roll_no,
               college,
-              scope
+              scope,
+              user: true
             },
             APP_SECRET_KEY, {
               expiresIn: "100d"

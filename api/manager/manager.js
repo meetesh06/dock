@@ -1,4 +1,4 @@
-const APP_SECRET_KEY = "KmnIIN60jZSN4wWXN52F-dope";
+// const APP_SECRET_KEY = "KmnIIN60jZSN4wWXN52F-dope";
 
 const express = require("express");
 const actions = require("../../actions/actions");

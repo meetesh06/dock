@@ -13,12 +13,12 @@ db.connectToServer( function( err ) {
     console.log("Unable to connect to Mongo.");
     process.exit(1);
   } else {
-    const events = require("./api/events/events.js");
+    const events_crud = require("./api/events/events_crud");
     const channels = require("./api/channels/channels");
     const auth = require("./api/auth/auth");
     const manager = require("./api/manager/manager");
 
-    app.use("/", events);
+    app.use("/", events_crud);
     app.use("/", channels);
     app.use("/", auth);
     app.use("/", manager);
