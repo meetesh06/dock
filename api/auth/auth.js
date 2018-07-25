@@ -13,6 +13,7 @@ const passwordHash = require("password-hash");
 
 const cryptrObject = new cryptr(APP_SECRET_KEY);
 const sendEmailHtml = actions.sendEmailHtml;
+const verifyManagerToken = actions.verifyManagerToken;
 const verifyTempToken = actions.verifyTempToken;
 const TABLE_USERS = constants.TABLE_USERS;
 const TABLE_USERS_ADMIN = constants.TABLE_USERS_ADMIN;
@@ -95,6 +96,40 @@ router.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 //   2) token - string
 //   3) mssg - string
 //
+
+router.post("/auth/android/manager/verify", (req, res) => {
+  verifyManagerToken(req, (err, decoded) => {
+    if(err) {
+      return res.json({
+        error: true,
+        mssg: "Token Verification failed."
+      });
+    } 
+    else {
+      const token_payload = {
+        email: decoded.email,
+        name: decoded.name,
+        college: decoded.college,
+        scope: decoded.scope,
+        limits: decoded.limits,
+        manager: decoded.manager
+      };
+      jwt.sign(token_payload, APP_SECRET_KEY, { expiresIn: "100d" }, function(err, token) {
+        if(err) {
+          return res.json({
+            error: true,
+            mssg: "error signing token"
+          });
+        }
+        return res.json({
+          error: false,
+          token,
+        });
+  });
+}
+});
+});
+
 
 router.post("/auth/android/signin", (req, res) => {
   if (!req.body) return res.json({
@@ -338,12 +373,7 @@ router.post("/auth/android/manager/signin", (req, res) => {
           }
           return res.json({
             error: false,
-            token,
-            bundle: {
-              hash: data.hash,
-              events: [],
-              notifications: []
-            }
+            token
           });
         });
       } else {
