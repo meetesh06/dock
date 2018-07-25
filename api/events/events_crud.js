@@ -63,13 +63,13 @@ const verifyRequest = function (req, res, next) {
   });
 };
 
-router.use(verifyRequest);
+//router.use(verifyRequest);
 router.use(fileUpload());
 router.use(bodyParser.json()); // support json encoded bodies
 router.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
 // Event Creation
-router.post("/events/create", (req, res) => {
+router.post("/events/create", verifyRequest, (req, res) => {
   const uid = UID(6);
   const decoded = req.decoded;
   // implicit
