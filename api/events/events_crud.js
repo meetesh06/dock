@@ -23,28 +23,29 @@ const dbo = db.getDb();
 
 // Everything About using these routes
 // 1) /events/create -> 
-//  expects: 
+//  expects:
 //    1) title : string
 //    2) description : string
 //    3) reg_start : date
 //    4) reg_end : date
 //    5) date : date
 //    6) location : string
-//    7) team_size : integer
+//    --> 7) team_size : integer
 //    8) category : string
 //    9) tags : string
 //    10) c1_name : string
-//    12) c1_phone : string
-//    11) c2_name : string
+//    11) c1_phone : string
+//    12) c2_name : string
 //    13) c2_phone : string
-//    14) timestamp : string
+//    15) audience: string
+//    14) available_seats : integer
+//    15) media
 //  replies:
 //    1) error - boolean
 //    2) mssg - string
 //  other: 
 //    sends a update to the scope
 //    sends a email to the creator
-//
 
 const router = express.Router();
 // Event Route Middleware
@@ -97,11 +98,19 @@ router.post("/events/create", verifyRequest, (req, res) => {
   const c2_name = req.body.c2_name;
   const c2_phone = req.body.c2_phone;
   const audience = req.body.audience;
+  const available_seats = req.body.available_seats;
 
-  if( title === undefined || description === undefined || location === undefined || team_size === undefined || category === undefined || tags === undefined || tags.trim() === "" || reg_start === undefined || reg_end === undefined || date === undefined || c1_name === undefined || c1_phone === undefined || c2_name === undefined || c2_phone === undefined || audience === undefined || audience.trim() === "" ) {
+  if( title === undefined || description === undefined || location === undefined || team_size === undefined || category === undefined || tags === undefined || tags.trim() === "" || reg_start === undefined || reg_end === undefined || date === undefined || c1_name === undefined || c1_phone === undefined || c2_name === undefined || c2_phone === undefined || audience === undefined || audience.trim() === "" || available_seats === undefined ) {
     return res.json({
       error: true,
       mssg: "invalid request"
+    });
+  }
+
+  if(req.files === undefined) {
+    return res.json({
+      error: true,
+      mssg: "invalid request, no files"
     });
   }
   
@@ -132,10 +141,12 @@ router.post("/events/create", verifyRequest, (req, res) => {
     category,
     tags,
     event_other_details,
-    audience: audience.split(",")
+    audience: audience.split(","),
+    available_seats
   };
   console.log(req.files);
-  saveFiles([], function(media, err) {
+  
+  saveFiles(req.files, function(media, err) {
     if (err) {
       return res.json({
         error: true,
@@ -465,7 +476,7 @@ a[x-apple-data-detectors=true] {
                     <div class="">
 	<!--[if mso]><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-right: 10px; padding-left: 10px; padding-top: 20px; padding-bottom: 30px;"><![endif]-->
 	<div style="color:#FFFFFF;font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;line-height:120%; padding-right: 10px; padding-left: 10px; padding-top: 20px; padding-bottom: 30px;">	
-		<div style="font-size:12px;line-height:14px;font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;color:#FFFFFF;text-align:left;"><p style="margin: 0;font-size: 14px;line-height: 17px;text-align: center"><span style="font-size: 28px; line-height: 33px;">An event was successfully created event</span></p></div>	
+		<div style="font-size:12px;line-height:14px;font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;color:#FFFFFF;text-align:left;"><p style="margin: 0;font-size: 14px;line-height: 17px;text-align: center"><span style="font-size: 28px; line-height: 33px;">An event was successfully created</span></p></div>	
 	</div>
 	<!--[if mso]></td></tr></table><![endif]-->
 </div>
