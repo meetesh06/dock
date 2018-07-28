@@ -78,46 +78,49 @@ router.post("/events/create", verifyRequest, (req, res) => {
   const name = decoded.name;
   const college = decoded.college;
   // generated
-  const _id = name + "-" + uid;
+  const _id = decoded.channel.id + "-" + uid;
   const reach = [];
   const views = [];
   const enrollees = [];
   const timestamp = new Date();
+  const audience = [];
   // supplied data
   const title = req.body.title;
   const description = req.body.description;
   const location = req.body.location;
-  const team_size = req.body.team_size;
   const category = req.body.category;
   const tags = req.body.tags;
   const reg_start = new Date(req.body.reg_start);
   const reg_end = new Date(req.body.reg_end);
   const date = new Date(req.body.date);
-  const c1_name = req.body.c1_name;
-  const c1_phone = req.body.c1_phone;
-  const c2_name = req.body.c2_name;
-  const c2_phone = req.body.c2_phone;
-  const audience = req.body.audience;
+  const contact_details = req.body.contact_details;
+  const faq = req.body.faq;
+  const price = req.body.price;
   const available_seats = req.body.available_seats;
 
-  if( title === undefined || description === undefined || location === undefined || team_size === undefined || category === undefined || tags === undefined || tags.trim() === "" || reg_start === undefined || reg_end === undefined || date === undefined || c1_name === undefined || c1_phone === undefined || c2_name === undefined || c2_phone === undefined || audience === undefined || audience.trim() === "" || available_seats === undefined ) {
+  if( title === undefined || description === undefined || location === undefined || category === undefined || faq === undefined || tags === undefined || tags.trim() === "" || reg_start === undefined || reg_end === undefined || date === undefined || price === undefined ||contact_details === undefined || available_seats === undefined ) {
     return res.json({
       error: true,
       mssg: "invalid request"
     });
   }
 
+  if(isNaN(price) || isNaN(available_seats)) {
+    return res.json({
+      error: true,
+      mssg: "invalid request"
+    });
+  }
+  
   if(req.files === undefined) {
     return res.json({
       error: true,
       mssg: "invalid request, no files"
     });
   }
-  
-  const event_other_details = {
-    event_coordinator_names: c1_name + "," + c2_name,
-    event_coordinator_contact: c1_phone + "," + c2_phone
-  };
+
+  audience.push(decoded.channel.id.trim());
+  audience.push(category);
 
   const query_data = {
     // implicit
@@ -133,18 +136,18 @@ router.post("/events/create", verifyRequest, (req, res) => {
     // form
     title,
     description,
+    location,
+    category,
+    tags,
     reg_start,
     reg_end,
     date,
-    location,
-    team_size,
-    category,
-    tags,
-    event_other_details,
-    audience: audience.split(","),
-    available_seats
+    contact_details,
+    faq,
+    price,
+    available_seats,
+    audience
   };
-  console.log(req.files);
   
   saveFiles(req.files, function(media, err) {
     if (err) {

@@ -206,6 +206,7 @@ router.post("/auth/android/verify", (req, res) => {
                 college: decoded.college,
                 name: result.username,
                 scope: result.scope,
+                channel : decoded.channel,
                 user: true
               },
               APP_SECRET_KEY, {
@@ -361,6 +362,7 @@ router.post("/auth/android/manager/signin", (req, res) => {
           name: data.name,
           college: data.college,
           scope: data.scope,
+          channel: data.channel,
           limits: data.limits,
           manager: true
         };
