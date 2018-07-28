@@ -73,21 +73,23 @@ exports.saveFiles = function(files, callback) {
         if (err) {
           return reject("reject");
         } else {
-          imagemin([loc], __dirname + "/media/", {
-            plugins: [
-              imageminWebp({quality: 50})
-            ]
-          }).then(files => {
-            media.push(files[0].path.split("/")[files[0].path.split("/").length - 1]);
-            resolve("resolve");
-          }).catch(err => {
-            console.log(err);
-            return reject("reject");
-          }).then( () => {
-            fs.unlink(loc, ()=> {
-              console.log("file delete async done");
-            });
-          });
+          media.push(files[0].path.split("/")[files[0].path.split("/").length - 1]);
+          resolve("resolve");
+          // imagemin([loc], __dirname + "/media/", {
+          //   plugins: [
+          //     imageminWebp({quality: 50})
+          //   ]
+          // }).then(files => {
+          //   media.push(files[0].path.split("/")[files[0].path.split("/").length - 1]);
+          //   resolve("resolve");
+          // }).catch(err => {
+          //   console.log(err);
+          //   return reject("reject");
+          // }).then( () => {
+          //   fs.unlink(loc, ()=> {
+          //     console.log("file delete async done");
+          //   });
+          // });
         }
       });
     }));
