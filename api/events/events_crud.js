@@ -113,6 +113,8 @@ router.post("/events/create", verifyRequest, (req, res) => {
   //     mssg: "invalid request"
   //   });
   // }
+
+  console.log(req.files);
   
   if(req.files === undefined) {
     return res.json({
