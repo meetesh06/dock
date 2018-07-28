@@ -157,7 +157,7 @@ router.post("/events/create", verifyRequest, (req, res) => {
     if (err) {
       return res.json({
         error: true,
-        mssg: "server side error, no files"
+        mssg: err
       });
     } else {
       query_data["media"] = media;
