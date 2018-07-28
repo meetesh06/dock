@@ -69,6 +69,30 @@ router.use(fileUpload());
 router.use(bodyParser.json()); // support json encoded bodies
 router.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
+router.post("/image-test", (req, res) => {
+  console.log(req.files);
+  
+  if(req.files === undefined) {
+    return res.json({
+      error: true,
+      mssg: "invalid request, no files"
+    });
+  }
+  saveFiles(req.files, function(media, err) {
+    if (err) {
+      return res.json({
+        error: true,
+        mssg: err
+      });
+    } else {
+      return res.json({
+        error: false,
+        mssg: "success upload and compression"
+      });
+    }
+  });
+});
+
 // Event Creation
 router.post("/events/create", verifyRequest, (req, res) => {
   const uid = UID(6);
