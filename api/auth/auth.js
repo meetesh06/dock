@@ -112,6 +112,7 @@ router.post("/auth/android/manager/verify", (req, res) => {
         college: decoded.college,
         scope: decoded.scope,
         limits: decoded.limits,
+        channel : decoded.channel,
         manager: decoded.manager
       };
       jwt.sign(token_payload, APP_SECRET_KEY, { expiresIn: "100d" }, function(err, token) {
@@ -206,7 +207,6 @@ router.post("/auth/android/verify", (req, res) => {
                 college: decoded.college,
                 name: result.username,
                 scope: result.scope,
-                channel : decoded.channel,
                 user: true
               },
               APP_SECRET_KEY, {
