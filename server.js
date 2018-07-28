@@ -1,6 +1,6 @@
 const express = require("express");
 // Host and port information
-const PORT = 8080;
+const PORT = 65534;
 const HOST = "127.0.0.1";
 // Importing the required route apis
 var db = require("./db");
