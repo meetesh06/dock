@@ -10,6 +10,7 @@ const fs = require("fs");
 const admin = require("firebase-admin");
 const db = require("../db");
 const serviceAccount = require("./admincred.json");
+const imageminMozjpeg = require("imagemin-mozjpeg");
 
 const TABLE_SCOPE = constants.TABLE_SCOPE;
 const MAX_RETRIES_MESSAGING = constants.MAX_RETRIES_MESSAGING;
@@ -73,23 +74,22 @@ exports.saveFiles = function(files, callback) {
         if (err) {
           return reject("reject");
         } else {
-          media.push(files[0].path.split("/")[files[0].path.split("/").length - 1]);
-          resolve("resolve");
-          // imagemin([loc], __dirname + "/media/", {
-          //   plugins: [
-          //     imageminWebp({quality: 50})
-          //   ]
-          // }).then(files => {
-          //   media.push(files[0].path.split("/")[files[0].path.split("/").length - 1]);
-          //   resolve("resolve");
-          // }).catch(err => {
-          //   console.log(err);
-          //   return reject("reject");
-          // }).then( () => {
-          //   fs.unlink(loc, ()=> {
-          //     console.log("file delete async done");
-          //   });
-          // });
+          imagemin([loc], __dirname + "/media/", {
+            plugins: [
+              // imageminWebp({quality: 50})
+              imageminMozjpeg()
+            ]
+          }).then(files => {
+            media.push(files[0].path.split("/")[files[0].path.split("/").length - 1]);
+            resolve("resolve");
+          }).catch(err => {
+            console.log(err);
+            return reject("reject");
+          }).then( () => {
+            fs.unlink(loc, ()=> {
+              console.log("file delete async done");
+            });
+          });
         }
       });
     }));
