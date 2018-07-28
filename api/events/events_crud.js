@@ -105,12 +105,12 @@ router.post("/events/create", verifyRequest, (req, res) => {
     });
   }
 
-  if(isNaN(price) || isNaN(available_seats)) {
-    return res.json({
-      error: true,
-      mssg: "invalid request"
-    });
-  }
+  // if(isNaN(price) || isNaN(available_seats)) {
+  //   return res.json({
+  //     error: true,
+  //     mssg: "invalid request"
+  //   });
+  // }
   
   if(req.files === undefined) {
     return res.json({
