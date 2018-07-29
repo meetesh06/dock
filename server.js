@@ -17,11 +17,13 @@ db.connectToServer( function( err ) {
     const channels = require("./api/channels/channels");
     const auth = require("./api/auth/auth");
     const manager = require("./api/manager/manager");
+    const others = require("./api/other/others");
 
     app.use("/", events_crud);
     app.use("/", channels);
     app.use("/", auth);
     app.use("/", manager);
+    app.use("/", others);
     app.listen(PORT, HOST, () => {
       console.log("server is live on http://"+HOST+":"+PORT);
     });

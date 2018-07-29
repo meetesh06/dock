@@ -740,6 +740,7 @@ a[x-apple-data-detectors=true] {
 
 </body></html>`
   };
-  var subject = "Successfully created event";
+  
+  var subject = "Successfully created a new Event | Dock";
   sendEmailHtml(reciever, subject, html.content);
 }
