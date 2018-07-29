@@ -24,6 +24,8 @@ db.connectToServer( function( err ) {
     app.use("/", auth);
     app.use("/", manager);
     app.use("/", others);
+
+    // ssh -p 7822 mycampu1@mycampusdock.com;
     app.listen(PORT, HOST, () => {
       console.log("server is live on http://"+HOST+":"+PORT);
     });
