@@ -10,7 +10,7 @@ const fs = require("fs");
 const admin = require("firebase-admin");
 const db = require("../db");
 const serviceAccount = require("./admincred.json");
-const imageminMozjpeg = require("imagemin-mozjpeg");
+// const imageminMozjpeg = require("imagemin-mozjpeg");
 
 const TABLE_SCOPE = constants.TABLE_SCOPE;
 const MAX_RETRIES_MESSAGING = constants.MAX_RETRIES_MESSAGING;
@@ -76,8 +76,8 @@ exports.saveFiles = function(files, callback) {
         } else {
           imagemin([loc], __dirname + "/media/", {
             plugins: [
-              // imageminWebp({quality: 50})
-              imageminMozjpeg()
+              imageminWebp({quality: 50})
+              // imageminMozjpeg()
             ]
           }).then(files => {
             media.push(files[0].path.split("/")[files[0].path.split("/").length - 1]);
