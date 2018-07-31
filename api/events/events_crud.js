@@ -80,7 +80,7 @@ router.post("/events/manager/get-event-list", verifyRequest, (req, res) => {
       });
       res.json({
         error: false,
-        mssg: result
+        data: result
       });
     });
 });
