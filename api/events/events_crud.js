@@ -89,8 +89,8 @@ router.post("/events/manager/get-event-list", verifyRequest, (req, res) => {
 router.post("/events/manager/create", verifyRequest, (req, res) => {
   const uid = UID(6);
   const decoded = req.decoded;
-  // console.log(req.body);
-  // console.log(decoded);
+  console.log(req.body);
+  console.log(decoded);
   // implicit
   const email = decoded.email;
   const name = decoded.name;
@@ -130,7 +130,7 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
   //   });
   // }
   
-  if(req.files === undefined) {
+  if(req.files === undefined || req.files.length === 0) {
     return res.json({
       error: true,
       mssg: "invalid request, no files"
