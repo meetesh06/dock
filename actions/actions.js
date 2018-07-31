@@ -84,11 +84,10 @@ exports.saveFiles = function(files, callback) {
             resolve("resolve");
           }).catch(err => {
             console.log(err);
-            return reject("reject");
-          }).then( () => {
             fs.unlink(loc, ()=> {
               console.log("file delete async done");
             });
+            return reject("reject");
           });
         }
       });

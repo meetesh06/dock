@@ -89,8 +89,8 @@ router.post("/events/manager/get-event-list", verifyRequest, (req, res) => {
 router.post("/events/manager/create", verifyRequest, (req, res) => {
   const uid = UID(6);
   const decoded = req.decoded;
-  console.log(req.body);
-  console.log(decoded);
+  // console.log(req.body);
+  // console.log(decoded);
   // implicit
   const email = decoded.email;
   const name = decoded.name;
@@ -129,8 +129,6 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
   //     mssg: "invalid request"
   //   });
   // }
-
-  console.log(req.files);
   
   if(req.files === undefined) {
     return res.json({
@@ -168,6 +166,8 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
     available_seats,
     audience
   };
+
+  console.log(req.files);
   
   saveFiles(req.files, function(media, err) {
     if (err) {
@@ -177,6 +177,7 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
       });
     } else {
       query_data["media"] = media;
+      console.log(media);
       dbo.collection(TABLE_EVENTS).insertOne(query_data, function(err) {
         if (err) {
           return res.json({
