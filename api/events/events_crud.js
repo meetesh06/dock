@@ -69,32 +69,24 @@ router.use(fileUpload());
 router.use(bodyParser.json()); // support json encoded bodies
 router.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
-router.post("/image-test", (req, res) => {
-  console.log(req.files);
-  
-  if(req.files === undefined) {
-    return res.json({
-      error: true,
-      mssg: "invalid request, no files"
-    });
-  }
-  saveFiles(req.files, function(media, err) {
-    if (err) {
-      return res.json({
+router.post("/events/manager/get-event-list", verifyRequest, (req, res) => {
+  const decoded = req.decoded;
+  const email = decoded.email;
+  dbo.collection(TABLE_EVENTS).find({ email })
+    .toArray( (err, result) => {
+      if(err) return res.json({
         error: true,
         mssg: err
       });
-    } else {
-      return res.json({
+      res.json({
         error: false,
-        mssg: "success upload and compression"
+        mssg: result
       });
-    }
-  });
+    });
 });
 
 // Event Creation
-router.post("/events/create", verifyRequest, (req, res) => {
+router.post("/events/manager/create", verifyRequest, (req, res) => {
   const uid = UID(6);
   const decoded = req.decoded;
   console.log(req.body);
