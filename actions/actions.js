@@ -77,17 +77,17 @@ exports.saveFiles = function(files, callback) {
           imagemin([loc], __dirname + "/media/", {
             plugins: [
               imageminWebp({quality: 50})
-              // imageminMozjpeg()
             ]
           }).then(files => {
             media.push(files[0].path.split("/")[files[0].path.split("/").length - 1]);
             resolve("resolve");
           }).catch(err => {
             console.log(err);
+            return reject("reject");
+          }).then( () => {
             fs.unlink(loc, ()=> {
               console.log("file delete async done");
             });
-            return reject("reject");
           });
         }
       });
