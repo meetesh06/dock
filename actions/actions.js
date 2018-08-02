@@ -85,9 +85,9 @@ exports.saveFiles = function(files, callback) {
             console.log(err);
             return reject("reject");
           }).then( () => {
-            fs.unlink(loc, ()=> {
-              console.log("file delete async done");
-            });
+            // fs.unlink(loc, ()=> {
+            //   console.log("file delete async done");
+            // });
           });
         }
       });
