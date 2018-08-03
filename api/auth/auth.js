@@ -1,4 +1,3 @@
-// process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0; --> This hack I was using to skip the certificate test before, no longer needed
 const APP_SECRET_KEY = "KmnIIN60jZSN4wWXN52F-dope";
 
 const express = require("express");
@@ -126,9 +125,9 @@ router.post("/auth/android/manager/verify", (req, res) => {
           error: false,
           token,
         });
+      });
+    }
   });
-}
-});
 });
 
 
@@ -150,31 +149,49 @@ router.post("/auth/android/signin", (req, res) => {
       mssg: "invalid email"
     });
   }
-  var pin = Math.floor(1000 + Math.random() * 9000);
-  const encryptedPin = cryptrObject.encrypt(pin);
-  sendVerificationMail(email, pin, function(error) {
-    if (error) return res.json({
-      error: true,
-      mssg: error
-    });
-    const token_payload = {
-      email: email,
-      temp: true,
-      pin: encryptedPin
-    };
-    jwt.sign(token_payload, APP_SECRET_KEY, { expiresIn: "2h" }, function(err, token) {
+
+  dbo.collection(TABLE_USERS).findOne(
+    {
+      email
+    }, (err, result) => {
       if(err) {
         return res.json({
           error: true,
-          mssg: "error signing token"
+          mssg: "error processing request"
         });
       }
-      return res.json({
-        error: false,
-        token
-      });
+      if(result) {
+        const token = jwt.sign({
+          email: req.body.email,
+          college: result.college,
+          name: result.username,
+          user: true
+        },
+        APP_SECRET_KEY, {
+          expiresIn: "100d"
+        });
+        return res.json({
+          error: false,
+          newUser: false,
+          token,
+          data: result
+        });
+      } else {
+        const token = jwt.sign({
+          email: req.body.email,
+          newUser: true,
+          temp: true
+        },
+        APP_SECRET_KEY, {
+          expiresIn: "2h"
+        });
+        return res.json({
+          error: false,
+          newUser: true,
+          token
+        });
+      }
     });
-  });
 });
 
 router.post("/auth/android/verify", (req, res) => {
@@ -203,9 +220,9 @@ router.post("/auth/android/verify", (req, res) => {
             if(result) {
               const token = jwt.sign({
                 email: req.body.email,
-                roll_no: result.roll_no,
                 college: decoded.college,
-                name: result.username,
+                name: result.name,
+                gender : result.gender,
                 scope: result.scope,
                 user: true
               },
@@ -222,7 +239,6 @@ router.post("/auth/android/verify", (req, res) => {
             } else {
               const token = jwt.sign({
                 email: req.body.email,
-                college: decoded.college,
                 newUser: true,
                 temp: true
               },
@@ -255,13 +271,13 @@ router.post("/auth/android/new-user", (req, res) => {
       });
     } else {
       if(decoded.newUser === true) {
-        let roll_no = req.body.roll_no;
-        let username = req.body.username;
+        let name = req.body.name;
         let email = req.body.email;
-        let scope = req.body.scope;
+        let scope = [];
         let college = req.body.college;
         let gender = req.body.gender;
-        if(roll_no === undefined || username === undefined || email === undefined || scope === undefined || college === undefined || gender === undefined) {
+
+        if(name === undefined || email === undefined || scope === undefined || college === undefined || gender === undefined) {
           return res.json({
             error: true,
             mssg: "Invalid request"
@@ -280,15 +296,14 @@ router.post("/auth/android/new-user", (req, res) => {
           });
         }
         const params = {
-          roll_no,
-          username,
+          name,
           email,
           scope,
           college,
           gender
         };
         dbo.collection(TABLE_USERS).replaceOne({
-          roll_no
+          email
         }, params, {
           upsert: true
         }, function(err) {
@@ -300,8 +315,7 @@ router.post("/auth/android/new-user", (req, res) => {
           } else {
             const JWTToken = jwt.sign({
               email,
-              name : username,
-              roll_no,
+              name,
               college,
               scope,
               user: true
