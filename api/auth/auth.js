@@ -9,7 +9,7 @@ const jwt = require("jsonwebtoken");
 const constants = require("../../constants");
 const cryptr = require("cryptr");
 const passwordHash = require("password-hash");
-
+const saveFiles = actions.saveFiles;
 const cryptrObject = new cryptr(APP_SECRET_KEY);
 const sendEmailHtml = actions.sendEmailHtml;
 const verifyManagerToken = actions.verifyManagerToken;
@@ -263,6 +263,7 @@ router.post("/auth/android/verify", (req, res) => {
 });
 
 router.post("/auth/android/new-user", (req, res) => {
+  console.log(req.body);
   verifyTempToken(req, (err, decoded) => {
     if(err) {
       return res.json({
@@ -272,12 +273,13 @@ router.post("/auth/android/new-user", (req, res) => {
     } else {
       if(decoded.newUser === true) {
         let name = req.body.name;
-        let email = req.body.email;
+        let email = decoded.email;
         let scope = [];
         let college = req.body.college;
         let gender = req.body.gender;
+        let pic = req.body.pic;
 
-        if(name === undefined || email === undefined || scope === undefined || college === undefined || gender === undefined) {
+        if(pic === undefined || name === undefined || email === undefined || scope === undefined || college === undefined || gender === undefined) {
           return res.json({
             error: true,
             mssg: "Invalid request"
@@ -300,35 +302,43 @@ router.post("/auth/android/new-user", (req, res) => {
           email,
           scope,
           college,
-          gender
+          gender,
+          pic
         };
-        dbo.collection(TABLE_USERS).replaceOne({
-          email
-        }, params, {
-          upsert: true
-        }, function(err) {
-          if (err) {
-            return res.json({
-              error: true,
-              mssg: err
-            });
-          } else {
-            const JWTToken = jwt.sign({
-              email,
-              name,
-              college,
-              scope,
-              user: true
-            },
-            APP_SECRET_KEY, {
-              expiresIn: "100d"
-            });
-            return res.json({
-              error: false,
-              token: JWTToken,
-              mssg: "updated"
-            });
-          }
+
+        saveFiles(req.files === undefined ? [] : req.files, (media, err) => {
+          params["media"] = media;
+          dbo.collection(TABLE_USERS).replaceOne({
+            email
+          }, params, {
+            upsert: true
+          }, function(err) {
+            if (err) {
+              return res.json({
+                error: true,
+                mssg: err
+              });
+            } else {
+              const JWTToken = jwt.sign({
+                email,
+                name,
+                college,
+                scope,
+                gender,
+                pic,
+                user: true
+              },
+              APP_SECRET_KEY, {
+                expiresIn: "100d"
+              });
+              return res.json({
+                error: false,
+                token: JWTToken,
+                mssg: "updated"
+              });
+            }
+          });
+        
         });
       } else {
         return res.json({

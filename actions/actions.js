@@ -97,7 +97,7 @@ exports.saveFiles = function(files, callback) {
     callback(media, null);
   }, function() {
     console.log(err);
-    return callback(null, true);
+    return callback([], true);
   });
 };
 
