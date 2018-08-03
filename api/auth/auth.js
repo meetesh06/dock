@@ -306,7 +306,7 @@ router.post("/auth/android/new-user", (req, res) => {
           pic
         };
 
-        saveFiles(req.files === undefined ? [] : req.files, (media, err) => {
+        saveFiles(( req.files === undefined || req.files === null ) ? [] : req.files, (media, err) => {
           params["media"] = media;
           dbo.collection(TABLE_USERS).replaceOne({
             email
