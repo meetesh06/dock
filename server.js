@@ -15,7 +15,7 @@ db.connectToServer( function( err ) {
     process.exit(1);
   } else {
     const events_crud = require("./api/events/events_crud");
-    const channels = require("./api/channels/channels");
+    const channels = require("./api/channels/channels_crud");
     const auth = require("./api/auth/auth");
     const manager = require("./api/manager/manager");
     const others = require("./api/other/others");

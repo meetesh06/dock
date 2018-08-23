@@ -6,7 +6,7 @@ const random = require("hat");
 const imagemin = require("imagemin");
 const imageminWebp = require("imagemin-webp");
 const constants = require("../constants");
-const fs = require("fs");
+// const fs = require("fs");
 const admin = require("firebase-admin");
 const db = require("../db");
 const serviceAccount = require("./admincred.json");
@@ -97,25 +97,25 @@ exports.saveFiles = function(files, callback) {
     callback(media, null);
   }, function() {
     console.log(err);
-    return callback([], true);
+    return callback(null, true);
   });
 };
 
 exports.updateScopeAsync = function(audience, type) {
   let i;
   // 0 - event
-  // 1 - bulletin
-  // 2 - notification
+  // 1 - post
+  // 2 - poll
   let current_hash = "d_hash";
   switch (type) {
   case 0:
     current_hash = "event_hash";
     break;
   case 1:
-    current_hash = "bulletin_hash";
+    current_hash = "post";
     break;
   case 2:
-    current_hash = "notification_hash";
+    current_hash = "poll";
     break;
   default:
     return;
