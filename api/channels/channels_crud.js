@@ -8,9 +8,9 @@ const fileUpload = require("express-fileupload");
 const db = require("../../db");
 const constants = require("../../constants");
 
-const TABLE_POSTS = constants.TABLE_POSTS;
-const TABLE_POLLS = constants.TABLE_POLLS;
+const TABLE_ACTIVITY = constants.TABLE_ACTIVITY;
 const verifyManagerToken = actions.verifyManagerToken;
+const verifyCommonToken = actions.verifyCommonToken;
 const updateScopeAsync = actions.updateScopeAsync;
 const sendToScope = actions.sendToScope;
 
@@ -38,12 +38,43 @@ const verifyRequest = function (req, res, next) {
   });
 };
 
+const verifyRequestCommon = function (req, res, next) {
+  verifyCommonToken(req, (err, decoded) => {
+    if(err) {
+      return res.json({
+        error: true,
+        mssg: "Token Verification failed."
+      });
+    } else {
+      req.authorized = true;
+      req.decoded = decoded;
+    }
+    next();
+  });
+};
+
 //DOCUMENTATION
 // CRUD Lifecycle for the channels
 
 // Channel Roles
 // 1) Creation on activity for the channels
 // 2) fetching of activity for the channels
+
+router.post("/channels/get-activity", verifyRequestCommon, (req, res) => {
+  const decoded = req.decoded;
+  const channel = decoded.channel;
+  dbo.collection(TABLE_ACTIVITY).find({ channel: channel.id })
+    .toArray( (err, result) => {
+      if(err) return res.json({
+        error: true,
+        mssg: err
+      });
+      res.json({
+        error: false,
+        data: result
+      });
+    });
+});
 
 router.post("/channels/manager/create-post", verifyRequest, (req, res) => {
   const uid = UID(6);
@@ -68,6 +99,7 @@ router.post("/channels/manager/create-post", verifyRequest, (req, res) => {
   const _id = channel.id + "-" + uid;
   const reach = [];
   const views = [];
+  const type = "post";
   const timestamp = new Date();
   const audience = [channel.id];
   
@@ -75,7 +107,9 @@ router.post("/channels/manager/create-post", verifyRequest, (req, res) => {
     _id,
     reach,
     views,
+    type,
     timestamp,
+    channel: channel.id,
     audience,
     message,
     email,
@@ -84,7 +118,7 @@ router.post("/channels/manager/create-post", verifyRequest, (req, res) => {
   
   console.log(query_data);
 
-  dbo.collection(TABLE_POSTS).insertOne(query_data, function(err) {
+  dbo.collection(TABLE_ACTIVITY).insertOne(query_data, function(err) {
     if (err) {
       return res.json({
         error: true,
@@ -141,6 +175,7 @@ router.post("/channels/manager/create-poll", verifyRequest, (req, res) => {
   const _id = channel.id + "-" + uid;
   const reach = [];
   const views = [];
+  const type = "poll";
   const timestamp = new Date();
   const audience = [channel.id];
   
@@ -148,7 +183,9 @@ router.post("/channels/manager/create-poll", verifyRequest, (req, res) => {
     _id,
     reach,
     views,
+    type,
     timestamp,
+    channel: channel.id,
     audience,
     message,
     options,
@@ -158,7 +195,7 @@ router.post("/channels/manager/create-poll", verifyRequest, (req, res) => {
 
   console.log(query_data);
   
-  dbo.collection(TABLE_POLLS).insertOne(query_data, function(err) {
+  dbo.collection(TABLE_ACTIVITY).insertOne(query_data, function(err) {
     if (err) {
       return res.json({
         error: true,

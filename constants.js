@@ -5,5 +5,6 @@ module.exports = Object.freeze({
   MAX_RETRIES_MESSAGING: 5,
   TABLE_USERS_ADMIN: "users_admin",
   TABLE_POSTS: "posts",
-  TABLE_POLLS: "polls"
+  TABLE_POLLS: "polls",
+  TABLE_ACTIVITY: "activity"
 });

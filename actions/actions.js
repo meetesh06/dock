@@ -162,6 +162,17 @@ exports.verifyManagerToken = function(req, callback) {
   });
 };
 
+exports.verifyCommonToken = function(req, callback) {
+  var token = req.headers["x-access-token"];
+  if (!token) return callback(true);
+  jwt.verify(token, APP_SECRET_KEY, function(err, decoded) {
+    if (err) return callback(true);
+    if (decoded)
+      if ( decoded.manager === true || decoded.user === true ) return callback(false, decoded);
+    return callback(true);
+  });
+};
+
 exports.verifyUserToken = function(req, callback) {
   var token = req.headers["x-access-token"];
   if (!token) return callback(true);
