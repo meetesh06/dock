@@ -62,8 +62,12 @@ const verifyRequestCommon = function (req, res, next) {
 
 router.post("/channels/get-activity", verifyRequestCommon, (req, res) => {
   const decoded = req.decoded;
-  const channel = decoded.channel;
-  dbo.collection(TABLE_ACTIVITY).find({ channel: channel.id })
+  const channel = req.body.channel;
+  if( channel === undefined ) return res.json({
+    error: true,
+    mssg: "Invalid Request"
+  });
+  dbo.collection(TABLE_ACTIVITY).find({ channel })
     .toArray( (err, result) => {
       if(err) return res.json({
         error: true,
