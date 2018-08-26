@@ -61,7 +61,7 @@ const verifyRequestCommon = function (req, res, next) {
 // 2) fetching of activity for the channels
 
 router.post("/channels/get-activity", verifyRequestCommon, (req, res) => {
-  const decoded = req.decoded;
+  // const decoded = req.decoded;
   const channel = req.body.channel;
   if( channel === undefined ) return res.json({
     error: true,

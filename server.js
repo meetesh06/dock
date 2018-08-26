@@ -15,12 +15,16 @@ db.connectToServer( function( err ) {
     process.exit(1);
   } else {
     const events_crud = require("./api/events/events_crud");
+    const events_user = require("./api/events/events_user");
+    const events_manager = require("./api/events/events_manager");
     const channels = require("./api/channels/channels_crud");
     const auth = require("./api/auth/auth");
     const manager = require("./api/manager/manager");
     const others = require("./api/other/others");
 
     app.use("/", events_crud);
+    app.use("/", events_user);
+    app.use("/", events_manager);
     app.use("/", channels);
     app.use("/", auth);
     app.use("/", manager);

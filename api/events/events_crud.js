@@ -69,21 +69,22 @@ router.use(fileUpload());
 router.use(bodyParser.json()); // support json encoded bodies
 router.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
-router.post("/events/manager/get-event-list", verifyRequest, (req, res) => {
-  const decoded = req.decoded;
-  const email = decoded.email;
-  dbo.collection(TABLE_EVENTS).find({ email })
-    .toArray( (err, result) => {
-      if(err) return res.json({
-        error: true,
-        mssg: err
-      });
-      res.json({
-        error: false,
-        data: result
-      });
-    });
-});
+// deprecated
+// router.post("/events/manager/get-event-list", verifyRequest, (req, res) => {
+//   const decoded = req.decoded;
+//   const email = decoded.email;
+//   dbo.collection(TABLE_EVENTS).find({ email })
+//     .toArray( (err, result) => {
+//       if(err) return res.json({
+//         error: true,
+//         mssg: err
+//       });
+//       res.json({
+//         error: false,
+//         data: result
+//       });
+//     });
+// });
 
 // Event Creation
 router.post("/events/manager/create", verifyRequest, (req, res) => {
@@ -115,6 +116,8 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
   const faq = req.body.faq;
   const price = req.body.price;
   const available_seats = req.body.available_seats;
+  
+  console.log(price, available_seats);
 
   if( title === undefined || description === undefined || location === undefined || category === undefined || faq === undefined || tags === undefined || tags.trim() === "" || reg_start === undefined || reg_end === undefined || date === undefined || price === undefined ||contact_details === undefined || available_seats === undefined ) {
     return res.json({
@@ -122,6 +125,18 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
       mssg: "invalid request"
     });
   }
+
+  if(!parseInt(price) === undefined)
+    return res.json({
+      error: true,
+      mssg: "invalid request"
+    });
+
+  if(!parseInt(available_seats))
+    return res.json({
+      error: true,
+      mssg: "invalid request"
+    });
 
   // if(isNaN(price) || isNaN(available_seats)) {
   //   return res.json({
@@ -195,7 +210,7 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
           $set: {
             hashsum: random()
           }
-        }, function(err, result) {
+        }, function(err) {
           if (err) {
             return res.json({
               error: true,

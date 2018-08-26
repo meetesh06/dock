@@ -172,6 +172,9 @@ exports.verifyCommonToken = function(req, callback) {
     return callback(true);
   });
 };
+exports.isValidDate = function(d) {
+  return d instanceof Date && !isNaN(d);
+};
 
 exports.verifyUserToken = function(req, callback) {
   var token = req.headers["x-access-token"];
