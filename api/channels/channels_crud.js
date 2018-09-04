@@ -13,6 +13,7 @@ const verifyManagerToken = actions.verifyManagerToken;
 const verifyCommonToken = actions.verifyCommonToken;
 const updateScopeAsync = actions.updateScopeAsync;
 const sendToScope = actions.sendToScope;
+const isValidDate = actions.isValidDate;
 
 const UID = actions.UID;
 
@@ -61,19 +62,43 @@ const verifyRequestCommon = function (req, res, next) {
 // 2) fetching of activity for the channels
 
 router.post("/channels/get-activity", verifyRequestCommon, (req, res) => {
-  // const decoded = req.decoded;
-  const channel = req.body.channel;
+  const decoded = req.decoded;
+  let channel = req.body.channel;
+  // bypass for manager
+  if(decoded.manager === true) channel = decoded.channel.id;
+  // conditional
   if( channel === undefined ) return res.json({
     error: true,
     mssg: "Invalid Request"
   });
-  dbo.collection(TABLE_ACTIVITY).find({ channel })
+
+  // explicit
+  let last_updated = req.body.last_updated;
+
+  if ( last_updated === undefined ) return res.json({
+    error: true,
+    mssg: "invalid request"
+  });
+  
+  last_updated = new Date(last_updated);
+  
+  const query_data = {
+    channel,
+  };
+
+  if(isValidDate(last_updated)) {
+    query_data["timestamp"] = {
+      $gt: last_updated
+    };
+  }
+  console.log(query_data);
+  dbo.collection(TABLE_ACTIVITY).find(query_data)
     .toArray( (err, result) => {
       if(err) return res.json({
         error: true,
         mssg: err
       });
-      res.json({
+      return res.json({
         error: false,
         data: result
       });
