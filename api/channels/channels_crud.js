@@ -249,4 +249,33 @@ router.post("/channels/manager/create-poll", verifyRequest, (req, res) => {
   });
 });
 
+router.post("/channels/update-poll", verifyRequestCommon, (req, res) => {
+  console.log(req.body);
+  const decoded = req.decoded;
+  // explicit
+  let _id = req.body._id;
+  let option = req.body.option;
+
+  // implicit
+  const email = decoded.email;
+
+  // conditional
+  if( _id === undefined || option === undefined ) return res.json({
+    error: true,
+    mssg: "Invalid Request"
+  });
+
+  let dope = "options."+option;
+  dbo.collection(TABLE_ACTIVITY).update({ _id }, { $addToSet: { [dope] : email }  }, (err, result) => {
+    if(err) return res.json({
+      error: true,
+      mssg: err
+    });
+    return res.json({
+      error: false,
+      data: result
+    });
+  });
+});
+
 module.exports = router;
