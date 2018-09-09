@@ -210,10 +210,6 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
               mssg: "server side error"
             });
           }
-          // mail(queryData['creator_email'], MAIL_EVENT_TITLE, MAIL_EVENT_TEXT + MAIL_EVENT_DEATILS_TITLE + queryData['event_title'] + MAIL_EVENT_FOOTER, function(error) {
-          //   console.log('event_mail_failed',error);
-          // });
-
           res.status(200).json({
             error: false,
             mssg: "successfully created the event"
@@ -225,8 +221,42 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
             data: {
               type: "event",
               content: JSON.stringify(query_data)
-            }
+            },
+            notification : {
+              body : 'Tap to know more | Dock',
+              title : query_data["title"]
+            },
+            priority : "10"
           };
+
+          /*
+            {
+              "message":{
+                "topic":"subscriber-updates",
+                "notification":{
+                  "body" : "This week's edition is now available.",
+                  "title" : "NewsMagazine.com",
+                },
+                "data" : {
+                  "volume" : "3.21.15",
+                  "contents" : "http://www.news-magazine.com/world-week/21659772"
+                },
+                "android":{
+                  "priority":"normal"
+                },
+                "apns":{
+                  "headers":{
+                    "apns-priority":"5"
+                  }
+                },
+                "webpush": {
+                  "headers": {
+                    "Urgency": "high"
+                  }
+                }
+              }
+            }
+          */
           sendToScope(query_data["audience"], payload);
         });
       });
