@@ -62,19 +62,19 @@ const UID_func = function(length) {
 
 exports.UID = UID_func;
 
-exports.saveFiles = function(files, callback) {
+exports.saveFiles = function(files, location, callback) {
   var media = [];
   let err = false;
   let toCompress = [];
   Object.entries(files).forEach(([key, value]) => {
-    var filename = random() + key + "-" + value.name;
-    var loc = __dirname + "/media/" + filename;
+    var filename = location + "-" + random() + key + "-" + value.name;
+    var loc = __dirname + "/media/" + location + "/" + filename;
     toCompress.push(new Promise((resolve, reject) => {
       value.mv(loc, function(err) {
         if (err) {
           return reject("reject");
         } else {
-          imagemin([loc], __dirname + "/media/", {
+          imagemin([loc], __dirname + "/media/" + location + "/", {
             plugins: [
               imageminWebp({quality: 50})
             ]
@@ -121,7 +121,7 @@ exports.updateScopeAsync = function(audience, type) {
     return;
   }
   let params = {};
-  params[current_hash] = UID_func(20);
+  params[current_hash] = random();
   for (i = 0; i < audience.length; i++) {
     dbo.collection(TABLE_SCOPE).update({
       name: audience[i]

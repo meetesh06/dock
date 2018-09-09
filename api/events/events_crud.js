@@ -96,8 +96,9 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
   const email = decoded.email;
   const name = decoded.name;
   const college = decoded.college;
+  const channel = decoded.channel;
   // generated
-  const _id = decoded.channel.id + "-" + uid;
+  const _id = channel.id + "-" + uid;
   const reach = [];
   const views = [];
   const enrollees = [];
@@ -145,7 +146,7 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
     });
   }
 
-  audience.push(decoded.channel.id.trim());
+  audience.push(channel.id.trim());
   audience.push(category);
 
   const query_data = {
@@ -176,8 +177,7 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
   };
 
   console.log(req.files);
-  
-  saveFiles(req.files, function(media, err) {
+  saveFiles(req.files, channel.id, function(media, err) {
     if (err) {
       return res.json({
         error: true,
