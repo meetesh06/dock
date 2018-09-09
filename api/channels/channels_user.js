@@ -6,6 +6,7 @@ const constants = require("../../constants");
 const verifyUserToken = actions.verifyUserToken;
 const isValidDate = actions.isValidDate;
 const TABLE_USERS = constants.TABLE_USERS;
+const TABLE_CHANNELS = constants.TABLE_CHANNELS;
 const dbo = db.getDb();
 
 // DOCUMENTATION
