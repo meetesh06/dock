@@ -14,6 +14,7 @@ const verifyCommonToken = actions.verifyCommonToken;
 const updateScopeAsync = actions.updateScopeAsync;
 const sendToScope = actions.sendToScope;
 const isValidDate = actions.isValidDate;
+const saveFiles = actions.saveFiles;
 
 const UID = actions.UID;
 
@@ -171,6 +172,93 @@ router.post("/channels/manager/create-post", verifyRequest, (req, res) => {
 
     sendToScope(query_data["audience"], payload);
   });
+  
+});
+router.post("/channels/manager/create-image-post", verifyRequest, (req, res) => {
+  const uid = UID(6);
+  const decoded = req.decoded;
+  console.log(req.body);
+  console.log(decoded);
+  // implicit
+  const email = decoded.email;
+  const name = decoded.name;
+  // const college = decoded.college;
+  const channel = decoded.channel;
+  // explicit
+  const message = req.body.message;
+  
+  if ( message === undefined )
+    return res.json({
+      error: true,
+      mssg: "missing fields"
+    });
+
+  // generated
+  const _id = channel.id + "-" + uid;
+  const reach = [];
+  const views = [];
+  const type = "post-image";
+  const timestamp = new Date();
+  const audience = [channel.id];
+  
+  const query_data = {
+    _id,
+    reach,
+    views,
+    type,
+    timestamp,
+    channel: channel.id,
+    audience,
+    message,
+    email,
+    name
+  };
+  
+  console.log(query_data);
+  console.log(req.files);
+
+  if(req.files === undefined || req.files === null || req.files.length === 0) {
+    return res.json({
+      error: true,
+      mssg: "invalid request, no files"
+    });
+  }
+
+  saveFiles(req.files, function(media, err) {
+    if (err) {
+      return res.json({
+        error: true,
+        mssg: err
+      });
+    } else {
+      query_data["media"] = media;
+      dbo.collection(TABLE_ACTIVITY).insertOne(query_data, function(err) {
+        if (err) {
+          return res.json({
+            error: true,
+            mssg: "server side error"
+          });
+        }
+    
+        res.status(200).json({
+          error: false,
+          mssg: "Success"
+        });
+    
+        updateScopeAsync(audience, 1);
+    
+        const payload = {
+          data: {
+            type: "post",
+            content: JSON.stringify(query_data)
+          }
+        };
+    
+        sendToScope(query_data["audience"], payload);
+      });
+    }
+  });
+
   
 });
 router.post("/channels/manager/create-poll", verifyRequest, (req, res) => {

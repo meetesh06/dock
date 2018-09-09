@@ -137,13 +137,6 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
       error: true,
       mssg: "invalid request"
     });
-
-  // if(isNaN(price) || isNaN(available_seats)) {
-  //   return res.json({
-  //     error: true,
-  //     mssg: "invalid request"
-  //   });
-  // }
   
   if(req.files === undefined || req.files.length === 0) {
     return res.json({

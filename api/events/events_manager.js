@@ -59,27 +59,116 @@ router.post("/events/manager/get-event-list", verifyRequest, (req, res) => {
   
   last_updated = new Date(last_updated);
   
-  const query_data = {
-    email,
+  const query_data =
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        email: 1,
+        college: 1,
+        reach: { $size: "$reach" },
+        views: { $size: "$views" },
+        enrollees: 1,
+        timestamp: 1,
+        title: 1,
+        description: 1,
+        location: 1,
+        category: 1,
+        tags: 1,
+        reg_start: 1,
+        reg_end: 1,
+        date: 1,
+        contact_details: 1,
+        faq: 1,
+        price: 1,
+        available_seats: 1,
+        audience: 1,
+        media: 1,
+      }
+    };
+  
+  const match = { 
+    $match: {
+      $and: [ 
+        { email }
+      ]
+    }
   };
 
   if(isValidDate(last_updated)) {
-    query_data["timestamp"] = {
-      $gt: last_updated
-    };
-  }
-  console.log(query_data);
-  dbo.collection(TABLE_EVENTS).find(query_data)
-    .toArray( (err, result) => {
-      if(err) return res.json({
-        error: true,
-        mssg: err
-      });
-      return res.json({
-        error: false,
-        data: result
-      });
+    match.$match.$and.push({
+      timestamp: { $gt: last_updated }
     });
+  }
+
+  dbo.collection(TABLE_EVENTS).aggregate([query_data, match]).toArray( (err, result) => {
+    if(err) return res.json({
+      error: true,
+      mssg: err
+    });
+    return res.json({
+      error: false,
+      data: result
+    });
+  });
+});
+
+router.post("/events/manager/update-event-data", verifyRequest, (req, res) => {
+  // implicit
+  const decoded = req.decoded;
+  const email = decoded.email;
+  // explicit
+  let _id = req.body._id;
+
+  if ( _id === undefined ) return res.json({
+    error: true,
+    mssg: "invalid request"
+  });
+
+  const query_data =
+    {
+      $project: {
+        _id: 1,
+        email: 1,
+        reach: { $size: "$reach" },
+        views: { $size: "$views" },
+        enrollees: 1,
+        title: 1,
+        description: 1,
+        location: 1,
+        category: 1,
+        tags: 1,
+        reg_start: 1,
+        reg_end: 1,
+        date: 1,
+        contact_details: 1,
+        faq: 1,
+        price: 1,
+        available_seats: 1,
+        audience: 1,
+        media: 1,
+      }
+    };
+  
+  const match = { 
+    $match: {
+      $and: [ 
+        { email },
+        { _id }
+      ]
+    }
+  };
+  
+  dbo.collection(TABLE_EVENTS).aggregate([query_data, match]).toArray( (err, result) => {
+    if(err) return res.json({
+      error: true,
+      mssg: err
+    });
+    return res.json({
+      error: false,
+      data: result
+    });
+  });
 });
 
 module.exports = router;
