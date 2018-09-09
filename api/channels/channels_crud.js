@@ -228,7 +228,7 @@ router.post("/channels/manager/create-image-post", verifyRequest, (req, res) => 
     });
   }
 
-  saveFiles(req.files, channel.id, function(media, err) {
+  saveFiles(req.files, function(media, err) {
     if (err) {
       return res.json({
         error: true,

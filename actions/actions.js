@@ -62,24 +62,24 @@ const UID_func = function(length) {
 
 exports.UID = UID_func;
 
-exports.saveFiles = function(files, location, callback) {
+exports.saveFiles = function(files, callback) {
   var media = [];
   let err = false;
   let toCompress = [];
   Object.entries(files).forEach(([key, value]) => {
-    var filename = location + "-" + random() + key + "-" + value.name;
-    var loc = __dirname + "/media/" + location + "/" + filename;
+    var filename = random() + key + "-" + value.name;
+    var loc = __dirname + "/media/" + filename;
     toCompress.push(new Promise((resolve, reject) => {
       value.mv(loc, function(err) {
         if (err) {
           return reject("reject");
         } else {
-          imagemin([loc], __dirname + "/media/" + location + "/", {
+          imagemin([loc], __dirname + "/media/", {
             plugins: [
               imageminWebp({quality: 50})
             ]
           }).then(files => {
-            media.push(files[0].path.split("/")[files[0].path.split("/").length - 2]);
+            media.push(files[0].path.split("/")[files[0].path.split("/").length - 1]);
             resolve("resolve");
           }).catch(err => {
             console.log(err);

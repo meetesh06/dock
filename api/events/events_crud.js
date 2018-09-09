@@ -177,7 +177,7 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
   };
 
   console.log(req.files);
-  saveFiles(req.files, channel.id, function(media, err) {
+  saveFiles(req.files, function(media, err) {
     if (err) {
       return res.json({
         error: true,
