@@ -170,7 +170,7 @@ router.post("/channels/manager/create-post", verifyRequest, (req, res) => {
       },
       notification : {
         body : 'Tap to know more | Dock',
-        title : query_data["title"]
+        title : ''+query_data["message"]
       }
     };
 
@@ -258,7 +258,7 @@ router.post("/channels/manager/create-image-post", verifyRequest, (req, res) => 
           },
           notification : {
             body : 'Tap to know more | Dock',
-            title : query_data["title"]
+            title : ''+query_data["message"]
           }
         };
     
@@ -342,7 +342,7 @@ router.post("/channels/manager/create-poll", verifyRequest, (req, res) => {
       },
       notification : {
         body : 'Tap to know more | Dock',
-        title : query_data["title"]
+        title : ''+query_data["message"]
       }
     };
     

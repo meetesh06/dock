@@ -224,7 +224,7 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
             },
             notification : {
               body : 'Tap to know more | Dock',
-              title : query_data["title"]
+              title : ''+query_data["title"]
             }
           };
 
