@@ -79,7 +79,7 @@ exports.saveFiles = function(files, location, callback) {
               imageminWebp({quality: 50})
             ]
           }).then(files => {
-            media.push(files[0].path.split("/")[files[0].path.split("/").length - 1]);
+            media.push(files[0].path.split("/")[files[0].path.split("/").length - 2]);
             resolve("resolve");
           }).catch(err => {
             console.log(err);
