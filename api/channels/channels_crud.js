@@ -7,8 +7,10 @@ const bodyParser = require("body-parser");
 const fileUpload = require("express-fileupload");
 const db = require("../../db");
 const constants = require("../../constants");
+const passwordHash = require("password-hash");
 
 const TABLE_ACTIVITY = constants.TABLE_ACTIVITY;
+const TABLE_USERS_ADMIN = constants.TABLE_USERS_ADMIN;
 const verifyManagerToken = actions.verifyManagerToken;
 const verifyCommonToken = actions.verifyCommonToken;
 const updateScopeAsync = actions.updateScopeAsync;
@@ -212,8 +214,8 @@ router.post("/channels/manager/create-post", verifyRequest, (req, res) => {
         content: JSON.stringify(query_data)
       },
       notification : {
-        body : 'Tap to know more | Dock',
-        title : ''+query_data["message"]
+        body : "Tap to know more | Dock",
+        title : ""+query_data["message"]
       }
     };
 
@@ -225,7 +227,7 @@ router.post("/channels/manager/create-image-post", verifyRequest, (req, res) => 
   const uid = UID(6);
   const decoded = req.decoded;
   console.log(req.body);
-  console.log(decoded);
+  console.log(req);
   // implicit
   const email = decoded.email;
   const name = decoded.name;
@@ -300,8 +302,8 @@ router.post("/channels/manager/create-image-post", verifyRequest, (req, res) => 
             content: JSON.stringify(query_data)
           },
           notification : {
-            body : 'Tap to know more | Dock',
-            title : ''+query_data["message"]
+            body : "Tap to know more | Dock",
+            title : ""+query_data["message"]
           }
         };
     
@@ -389,15 +391,14 @@ router.post("/channels/manager/create-poll", verifyRequest, (req, res) => {
         content: JSON.stringify(query_data)
       },
       notification : {
-        body : 'Tap to know more | Dock',
-        title : ''+query_data["message"]
+        body : "Tap to know more | Dock",
+        title : ""+query_data["message"]
       }
     };
     
     sendToScope(query_data["audience"], payload);
   });
 });
-
 router.post("/channels/make-poll", verifyRequestCommon, (req, res) => {
   console.log(req.body);
   const decoded = req.decoded;
@@ -426,5 +427,52 @@ router.post("/channels/make-poll", verifyRequestCommon, (req, res) => {
     });
   });
 });
+router.post("/channels/manager/get-member-list", verifyRequest, (req, res) => {
+  const decoded = req.decoded;
+  // implicit
+  const channel = decoded.channel.id;
+  dbo.collection(TABLE_USERS_ADMIN).find({ "channel.id": channel }).toArray( (err, result) => {
+    if(err) return res.json({
+      error: true,
+      mssg: err
+    });
+    return res.json({
+      error: false,
+      data: result
+    });
+  });
+});
+router.post("/channels/manager/add-member", verifyRequest, (req, res) => {
+  const decoded = req.decoded;
+  // implicit
+  const channel = decoded.channel;
+  const college = decoded.college;
+  // explicit
+  const email = req.body.email;
+  const password = req.body.password;
+  const name = req.body.name;
+  if( email === undefined || password === undefined || name === undefined ) return res.json({
+    error: true,
+    mssg: "Invalid Request"
+  });
+  const generated_password = passwordHash.generate(password);
+  dbo.collection(TABLE_USERS_ADMIN).insertOne({ 
+    email, 
+    password: generated_password,
+    name,
+    college,
+    channel,
+  }, (err, result) => {
+    if(err) return res.json({
+      error: true,
+      mssg: err
+    });
+    return res.json({
+      error: false,
+      data: result
+    });
+  });
+});
+
 
 module.exports = router;

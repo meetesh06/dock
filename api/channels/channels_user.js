@@ -4,7 +4,7 @@ const db = require("../../db");
 const constants = require("../../constants");
 
 const verifyUserToken = actions.verifyUserToken;
-const isValidDate = actions.isValidDate;
+// const isValidDate = actions.isValidDate;
 const TABLE_USERS = constants.TABLE_USERS;
 const TABLE_CHANNELS = constants.TABLE_CHANNELS;
 const dbo = db.getDb();
@@ -32,9 +32,9 @@ router.post("/channels/user/susbcribe", verifyRequest, (req, res) => {
   const email = decoded.email;
   const channel = req.body.channel;
 
-  dbo.collection(TABLE_CHANNELS).findOne({ _id : channel}, (err, result)=>{
+  dbo.collection(TABLE_CHANNELS).findOne({ _id : channel}, (err)=>{
     if(err){
-      console.log('error', err);
+      console.log("error", err);
       return res.json({
         error: true,
         mssg: err

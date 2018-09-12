@@ -2,16 +2,14 @@ const express = require("express");
 const actions = require("../../actions/actions");
 const db = require("../../db");
 const constants = require("../../constants");
-const random = require("hat");
 const bodyParser = require("body-parser");
 const fileUpload = require("express-fileupload");
 
 const verifyManagerToken = actions.verifyManagerToken;
 const UID = actions.UID;
 const TABLE_EVENTS = constants.TABLE_EVENTS;
-const TABLE_USERS_ADMIN = constants.TABLE_USERS_ADMIN;
 const saveFiles = actions.saveFiles;
-const updateScopeAsync = actions.updateScopeAsync;
+// const updateScopeAsync = actions.updateScopeAsync;
 const sendToScope = actions.sendToScope;
 const sendEmailHtml = actions.sendEmailHtml;
 const dbo = db.getDb();
@@ -177,71 +175,26 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
             mssg: "server side error"
           });
         }
-        
-        dbo.collection(TABLE_USERS_ADMIN).update({
-          email
-        }, {
-          $push: {
-            events: _id
-          },
-          $set: {
-            hashsum: random()
-          }
-        }, function(err) {
-          if (err) {
-            return res.json({
-              error: true,
-              mssg: "server side error"
-            });
-          }
-          res.status(200).json({
-            error: false,
-            mssg: "successfully created the event"
-          });
 
-          sendEventSuccessMail(email, name, _id);
-          updateScopeAsync(audience, 0);
-          const payload = {
-            data: {
-              type: "event",
-              content: JSON.stringify(query_data)
-            },
-            notification : {
-              body : 'Tap to know more | Dock',
-              title : ''+query_data["title"]
-            }
-          };
-
-          /*
-            {
-              "message":{
-                "topic":"subscriber-updates",
-                "notification":{
-                  "body" : "This week's edition is now available.",
-                  "title" : "NewsMagazine.com",
-                },
-                "data" : {
-                  "volume" : "3.21.15",
-                  "contents" : "http://www.news-magazine.com/world-week/21659772"
-                },
-                "android":{
-                  "priority":"normal"
-                },
-                "apns":{
-                  "headers":{
-                    "apns-priority":"5"
-                  }
-                },
-                "webpush": {
-                  "headers": {
-                    "Urgency": "high"
-                  }
-                }
-              }
-            }
-          */
-          sendToScope(query_data["audience"], payload);
+        res.status(200).json({
+          error: false,
+          mssg: "successfully created the event"
         });
+
+        sendEventSuccessMail(email, name, _id);
+        const payload = {
+          data: {
+            type: "event",
+            content: JSON.stringify(query_data)
+          },
+          notification : {
+            body : "Tap to know more | Dock",
+            title : ""+query_data["title"]
+          }
+        };
+
+        sendToScope(query_data["audience"], payload);
+        
       });
     }
   });

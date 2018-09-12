@@ -132,7 +132,6 @@ router.post("/auth/manager/verify", (req, res) => {
   });
 });
 
-
 router.post("/auth/signin", (req, res) => {
   if (!req.body) return res.json({
     error: true,

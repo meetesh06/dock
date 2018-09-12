@@ -34,6 +34,13 @@ const dbo = db.getDb();
 //    1) error - boolean
 //    2) mssg - string
 //
+// 3) /events/user/get-channel-event-list -> 
+//  expects: 
+//    1) channel - String (channel id)
+//  replies:
+//    1) error - boolean
+//    2) mssg - string
+//
 // NEW CHANGES:
 //  The Views and Reach are internally implemented, more accurate and faster.
 //  
@@ -118,20 +125,6 @@ router.post("/events/user/get-event-list", verifyRequest, (req, res) => {
     });
   }
 
-  console.log(query_data);
-  console.log(match);
-  // dbo.collection(TABLE_EVENTS).find(query_data)
-  //   .toArray( (err, result) => {
-  //     if(err) return res.json({
-  //       error: true,
-  //       mssg: err
-  //     });
-  //     return res.json({
-  //       error: false,
-  //       data: result
-  //     });
-  //   });
-  
   dbo.collection(TABLE_EVENTS).aggregate([query_data, match]).toArray( (err, result) => {
     if(err) return res.json({
       error: true,
@@ -229,6 +222,7 @@ router.post("/events/user/get-channel-event-list", verifyRequest, (req, res) => 
         name: 1,
         email: 1,
         college: 1,
+        channel: 1,
         reach: { $size: "$reach" },
         views: { $size: "$views" },
         enrollees: { $size: "$enrollees" },
@@ -249,7 +243,7 @@ router.post("/events/user/get-channel-event-list", verifyRequest, (req, res) => 
         media: 1,
       }
     };
-  
+    
   const match = { 
     $match: {
       $and: [ 
