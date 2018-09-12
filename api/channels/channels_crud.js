@@ -62,6 +62,49 @@ const verifyRequestCommon = function (req, res, next) {
 // 1) Creation on activity for the channels
 // 2) fetching of activity for the channels
 
+// Everything About using these routes
+//
+// All the token verification here are strictly done using permnent tokens.
+//
+// 1) /channels/get-activity -> 
+//  expects: 
+//    1) last_updated - "String"
+//  replies:
+//    1) error - boolean
+//    2) mssg - string / data - JSON
+//
+// 2) /channels/manager/create-post -> 
+//  expects: 
+//    1) message - "String"
+//  replies:
+//    1) error - boolean
+//    2) mssg - string
+//
+// 3) /channels/manager/create-image-post -> 
+//  expects: 
+//    1) message - "String"
+//    2) image - multipart/formdata
+//  replies:
+//    1) error - boolean
+//    2) mssg - string
+//
+// 4) /channels/manager/create-poll -> 
+//  expects: 
+//    1) message - "String"
+//    2) OPTIONS - "String" (COMMA SEPERATED)
+//  replies:
+//    1) error - boolean
+//    2) mssg - string
+//
+// 5) /channels/make-poll -> 
+//  expects: 
+//    1) _id - "String"
+//    1) option - "String"
+//  replies:
+//    1) error - boolean
+//    2) mssg - string
+//
+
 router.post("/channels/get-activity", verifyRequestCommon, (req, res) => {
   const decoded = req.decoded;
   let channel = req.body.channel;
@@ -288,6 +331,11 @@ router.post("/channels/manager/create-poll", verifyRequest, (req, res) => {
     processedOptions[options[i].trim()] = [];
   }
   options = processedOptions;
+  if(options.length < 2) 
+    return res.json({
+      error: true,
+      mssg: "Invalid Data"
+    });
   // generated
   const _id = channel.id + "-" + uid;
   const reach = [];
@@ -337,7 +385,7 @@ router.post("/channels/manager/create-poll", verifyRequest, (req, res) => {
   });
 });
 
-router.post("/channels/update-poll", verifyRequestCommon, (req, res) => {
+router.post("/channels/make-poll", verifyRequestCommon, (req, res) => {
   console.log(req.body);
   const decoded = req.decoded;
   // explicit

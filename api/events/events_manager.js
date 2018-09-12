@@ -22,10 +22,17 @@ const dbo = db.getDb();
 //    1) .. event_payload
 //  replies:
 //    1) error - boolean
-//    2) mssg - string
+//    2) mssg - string / data - JSON
 //  other: 
 //    sends a update to the scope
 //    sends a email to the creator
+//
+// 2) /events/manager/fetch-event-data -> 
+//  expects: 
+//    1) _id
+//  replies:
+//    1) error - boolean
+//    2) mssg - string / data - JSON
 //
 
 const router = express.Router();
@@ -113,7 +120,7 @@ router.post("/events/manager/get-event-list", verifyRequest, (req, res) => {
   });
 });
 
-router.post("/events/manager/update-event-data", verifyRequest, (req, res) => {
+router.post("/events/manager/fetch-event-data", verifyRequest, (req, res) => {
   // implicit
   const decoded = req.decoded;
   const email = decoded.email;

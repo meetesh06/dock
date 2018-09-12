@@ -69,23 +69,6 @@ router.use(fileUpload());
 router.use(bodyParser.json()); // support json encoded bodies
 router.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
-// deprecated
-// router.post("/events/manager/get-event-list", verifyRequest, (req, res) => {
-//   const decoded = req.decoded;
-//   const email = decoded.email;
-//   dbo.collection(TABLE_EVENTS).find({ email })
-//     .toArray( (err, result) => {
-//       if(err) return res.json({
-//         error: true,
-//         mssg: err
-//       });
-//       res.json({
-//         error: false,
-//         data: result
-//       });
-//     });
-// });
-
 // Event Creation
 router.post("/events/manager/create", verifyRequest, (req, res) => {
   const uid = UID(6);
@@ -172,7 +155,8 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
     faq,
     price,
     available_seats,
-    audience
+    audience,
+    channel: decoded.channel.id.trim()
   };
 
   console.log(req.files);

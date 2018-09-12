@@ -27,6 +27,16 @@ const dbo = db.getDb();
 //    sends a update to the scope
 //    sends a email to the creator
 //
+// 2) /events/user/fetch-event-data -> 
+//  expects: 
+//    1) _id: id of the event
+//  replies:
+//    1) error - boolean
+//    2) mssg - string
+//
+// NEW CHANGES:
+//  The Views and Reach are internally implemented, more accurate and faster.
+//  
 
 const router = express.Router();
 // Event Route Middleware
@@ -55,6 +65,7 @@ router.post("/events/user/get-event-list", verifyRequest, (req, res) => {
   // implicit
   const decoded = req.decoded;
   const college = decoded.college;
+  const email = decoded.email;
   // explicit
   let last_updated = req.body.last_updated;
 
@@ -65,10 +76,6 @@ router.post("/events/user/get-event-list", verifyRequest, (req, res) => {
   
   last_updated = new Date(last_updated);
   
-  // const query_data = {
-  //   college,
-  // };
-
   const query_data =
     {
       $project: {
@@ -105,12 +112,6 @@ router.post("/events/user/get-event-list", verifyRequest, (req, res) => {
     }
   };
 
-  // if(isValidDate(last_updated)) {
-  //   query_data["timestamp"] = {
-  //     $gt: last_updated
-  //   };
-  // }
-  
   if(isValidDate(last_updated)) {
     match.$match.$and.push({
       timestamp: { $gt: last_updated }
@@ -136,15 +137,24 @@ router.post("/events/user/get-event-list", verifyRequest, (req, res) => {
       error: true,
       mssg: err
     });
-    return res.json({
+    res.json({
       error: false,
       data: result
     });
+    const event_list = result.map(a => a._id);
+    if(event_list.length === 0) return;
+    dbo.collection(TABLE_EVENTS).updateMany(
+      { _id: { $in: event_list } },
+      { $addToSet: { "reach" : { email, timestamp: new Date() } } }
+    );
   });
 
 });
 
-router.post("/events/user/update-event-data", verifyRequest, (req, res) => {
+router.post("/events/user/fetch-event-data", verifyRequest, (req, res) => {
+  const decoded = req.decoded;
+  const email = decoded.email;
+  
   // explicit
   let _id = req.body._id;
 
@@ -152,7 +162,6 @@ router.post("/events/user/update-event-data", verifyRequest, (req, res) => {
     error: true,
     mssg: "invalid request"
   });
-
   const query_data =
     {
       $project: {
@@ -177,7 +186,6 @@ router.post("/events/user/update-event-data", verifyRequest, (req, res) => {
         media: 1,
       }
     };
-  
   const match = { 
     $match: {
       $and: [ 
@@ -191,11 +199,83 @@ router.post("/events/user/update-event-data", verifyRequest, (req, res) => {
       error: true,
       mssg: err
     });
-    return res.json({
+    res.json({
       error: false,
       data: result
     });
+    dbo.collection(TABLE_EVENTS).update(
+      { _id },
+      { $addToSet: { "views" : { email, timestamp: new Date().getUTCMonth() + 1 } } }
+    );
   });
 });
+
+router.post("/events/user/get-channel-event-list", verifyRequest, (req, res) => {
+  // implicit
+  const decoded = req.decoded;
+  const email = decoded.email;
+  // explicit
+  let channel = req.body.channel;
+
+  if ( channel === undefined ) return res.json({
+    error: true,
+    mssg: "invalid request"
+  });
+    
+  const query_data =
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        email: 1,
+        college: 1,
+        reach: { $size: "$reach" },
+        views: { $size: "$views" },
+        enrollees: { $size: "$enrollees" },
+        timestamp: 1,
+        title: 1,
+        description: 1,
+        location: 1,
+        category: 1,
+        tags: 1,
+        reg_start: 1,
+        reg_end: 1,
+        date: 1,
+        contact_details: 1,
+        faq: 1,
+        price: 1,
+        available_seats: 1,
+        audience: 1,
+        media: 1,
+      }
+    };
+  
+  const match = { 
+    $match: {
+      $and: [ 
+        { channel }
+      ]
+    }
+  };
+
+  dbo.collection(TABLE_EVENTS).aggregate([query_data, match]).toArray( (err, result) => {
+    if(err) return res.json({
+      error: true,
+      mssg: err
+    });
+    res.json({
+      error: false,
+      data: result
+    });
+    const event_list = result.map(a => a._id);
+    if(event_list.length === 0) return;
+    dbo.collection(TABLE_EVENTS).updateMany(
+      { _id: { $in: event_list } },
+      { $addToSet: { "reach" : { email, timestamp: new Date() } } }
+    );
+  });
+
+});
+
 
 module.exports = router;
