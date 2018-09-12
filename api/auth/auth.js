@@ -53,14 +53,14 @@ router.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 // able to get the pin just by decrypting the token is dealt with, also decided to store only non
 // sensitive data in the token, no need of encrypted tokens in our case
 //
-// 1) /auth/android/signin -> 
+// 1) /auth/signin -> 
 //  expects: 
 //    1) email - string
 //  replies:
 //    1) error - boolean
 //    2) token - string 
 //
-// 2) /auth/android/verify -> 
+// 2) /auth/verify -> 
 //  expects: 
 //    1) email - string
 //    2) pin - string/number ( no need to trim, all that is taken care of )
@@ -75,7 +75,7 @@ router.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 //      2) newuser - boolean
 //      3) token - string
 //
-// 3) /auth/android/new-user ->
+// 3) /auth/new-user ->
 // expects
 //   1) roll_no - string
 //   2) username - string
@@ -88,7 +88,7 @@ router.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 //   2) token - string
 //   3) mssg - string
 //
-// 4) /auth/android/manager/signin ->
+// 4) /auth/manager/signin ->
 // expects
 //   1) email - string
 //   2) password - string
@@ -98,7 +98,7 @@ router.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 //   3) mssg - string
 //
 
-router.post("/auth/android/manager/verify", (req, res) => {
+router.post("/auth/manager/verify", (req, res) => {
   verifyManagerToken(req, (err, decoded) => {
     if(err) {
       return res.json({
@@ -133,7 +133,7 @@ router.post("/auth/android/manager/verify", (req, res) => {
 });
 
 
-router.post("/auth/android/signin", (req, res) => {
+router.post("/auth/signin", (req, res) => {
   if (!req.body) return res.json({
     error: true,
     mssg: "missing fields"
@@ -196,7 +196,7 @@ router.post("/auth/android/signin", (req, res) => {
     });
 });
 
-router.post("/auth/android/verify", (req, res) => {
+router.post("/auth/verify", (req, res) => {
   verifyTempToken(req, (err, decoded) => {
     if(err) {
       return res.json({
@@ -264,7 +264,7 @@ router.post("/auth/android/verify", (req, res) => {
   });
 });
 
-router.post("/auth/android/new-user", (req, res) => {
+router.post("/auth/new-user", (req, res) => {
   console.log(req.body);
   verifyTempToken(req, (err, decoded) => {
     if(err) {
@@ -278,10 +278,11 @@ router.post("/auth/android/new-user", (req, res) => {
         let email = decoded.email;
         let scope = [];
         let college = req.body.college;
+        let mobile = req.body.mobile;
         let gender = req.body.gender;
         let pic = req.body.pic;
 
-        if(pic === undefined || name === undefined || email === undefined || scope === undefined || college === undefined || gender === undefined) {
+        if(pic === undefined || name === undefined || email === undefined || scope === undefined || college === undefined || gender === undefined || mobile === undefined) {
           return res.json({
             error: true,
             mssg: "Invalid request"
@@ -304,6 +305,7 @@ router.post("/auth/android/new-user", (req, res) => {
           email,
           scope,
           college,
+          mobile,
           gender,
           pic
         };
@@ -353,7 +355,7 @@ router.post("/auth/android/new-user", (req, res) => {
   });
 });
 
-router.post("/auth/android/manager/signin", (req, res) => {
+router.post("/auth/manager/signin", (req, res) => {
   if (!req.body) return res.json({
     error: true,
     mssg: "missing fields"

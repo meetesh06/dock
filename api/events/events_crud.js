@@ -79,8 +79,9 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
   const email = decoded.email;
   const name = decoded.name;
   const college = decoded.college;
+  const channel = decoded.channel;
   // generated
-  const _id = decoded.channel.id + "-" + uid;
+  const _id = channel.id + "-" + uid;
   const reach = [];
   const views = [];
   const enrollees = [];
@@ -128,7 +129,7 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
     });
   }
 
-  audience.push(decoded.channel.id.trim());
+  audience.push(channel.id.trim());
   audience.push(category);
 
   const query_data = {
@@ -160,7 +161,6 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
   };
 
   console.log(req.files);
-  
   saveFiles(req.files, function(media, err) {
     if (err) {
       return res.json({
@@ -194,10 +194,6 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
               mssg: "server side error"
             });
           }
-          // mail(queryData['creator_email'], MAIL_EVENT_TITLE, MAIL_EVENT_TEXT + MAIL_EVENT_DEATILS_TITLE + queryData['event_title'] + MAIL_EVENT_FOOTER, function(error) {
-          //   console.log('event_mail_failed',error);
-          // });
-
           res.status(200).json({
             error: false,
             mssg: "successfully created the event"
@@ -209,8 +205,41 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
             data: {
               type: "event",
               content: JSON.stringify(query_data)
+            },
+            notification : {
+              body : 'Tap to know more | Dock',
+              title : ''+query_data["title"]
             }
           };
+
+          /*
+            {
+              "message":{
+                "topic":"subscriber-updates",
+                "notification":{
+                  "body" : "This week's edition is now available.",
+                  "title" : "NewsMagazine.com",
+                },
+                "data" : {
+                  "volume" : "3.21.15",
+                  "contents" : "http://www.news-magazine.com/world-week/21659772"
+                },
+                "android":{
+                  "priority":"normal"
+                },
+                "apns":{
+                  "headers":{
+                    "apns-priority":"5"
+                  }
+                },
+                "webpush": {
+                  "headers": {
+                    "Urgency": "high"
+                  }
+                }
+              }
+            }
+          */
           sendToScope(query_data["audience"], payload);
         });
       });

@@ -210,6 +210,10 @@ router.post("/channels/manager/create-post", verifyRequest, (req, res) => {
       data: {
         type: "post",
         content: JSON.stringify(query_data)
+      },
+      notification : {
+        body : 'Tap to know more | Dock',
+        title : ''+query_data["message"]
       }
     };
 
@@ -294,6 +298,10 @@ router.post("/channels/manager/create-image-post", verifyRequest, (req, res) => 
           data: {
             type: "post",
             content: JSON.stringify(query_data)
+          },
+          notification : {
+            body : 'Tap to know more | Dock',
+            title : ''+query_data["message"]
           }
         };
     
@@ -379,8 +387,13 @@ router.post("/channels/manager/create-poll", verifyRequest, (req, res) => {
       data: {
         type: "post",
         content: JSON.stringify(query_data)
+      },
+      notification : {
+        body : 'Tap to know more | Dock',
+        title : ''+query_data["message"]
       }
     };
+    
     sendToScope(query_data["audience"], payload);
   });
 });

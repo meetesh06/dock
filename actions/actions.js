@@ -121,7 +121,7 @@ exports.updateScopeAsync = function(audience, type) {
     return;
   }
   let params = {};
-  params[current_hash] = UID_func(20);
+  params[current_hash] = random();
   for (i = 0; i < audience.length; i++) {
     dbo.collection(TABLE_SCOPE).update({
       name: audience[i]
