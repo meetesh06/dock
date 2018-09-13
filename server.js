@@ -1,4 +1,5 @@
 const express = require("express");
+const fileUpload = require("express-fileupload");
 // Host and port information
 const PORT = 65534;
 const HOST = "127.0.0.1";
@@ -9,6 +10,7 @@ const app = express();
 // defining middleware and other things
 app.use(express.static("email_resources"));
 app.use(express.static("actions/media"));
+app.use(fileUpload());
 db.connectToServer( function( err ) {
   if (err) {
     console.log("Unable to connect to Mongo.");

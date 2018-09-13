@@ -4,7 +4,7 @@ const express = require("express");
 const router = express.Router();
 const actions = require("../../actions/actions");
 const bodyParser = require("body-parser");
-const fileUpload = require("express-fileupload");
+
 const db = require("../../db");
 const constants = require("../../constants");
 const passwordHash = require("password-hash");
@@ -22,7 +22,7 @@ const UID = actions.UID;
 
 const dbo = db.getDb();
 
-router.use(fileUpload());
+// router.use(fileUpload());
 router.use(bodyParser.json()); // support json encoded bodies
 router.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
@@ -226,8 +226,8 @@ router.post("/channels/manager/create-post", verifyRequest, (req, res) => {
 router.post("/channels/manager/create-image-post", verifyRequest, (req, res) => {
   const uid = UID(6);
   const decoded = req.decoded;
-  console.log(req.body);
-  console.log(req);
+  // console.log(req.body);
+  // console.log(req);
   // implicit
   const email = decoded.email;
   const name = decoded.name;

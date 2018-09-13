@@ -63,7 +63,7 @@ const verifyRequest = function (req, res, next) {
 };
 
 //router.use(verifyRequest);
-router.use(fileUpload());
+// router.use(fileUpload());
 router.use(bodyParser.json()); // support json encoded bodies
 router.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
