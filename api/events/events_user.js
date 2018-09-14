@@ -164,6 +164,7 @@ router.post("/events/user/fetch-event-data", verifyRequest, (req, res) => {
         views: { $size: "$views" },
         enrollees: { $size: "$views" },
         title: 1,
+        channel : 1, 
         description: 1,
         location: 1,
         category: 1,
