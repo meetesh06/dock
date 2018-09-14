@@ -95,6 +95,7 @@ router.post("/events/user/get-event-list", verifyRequest, (req, res) => {
         enrollees: { $size: "$enrollees" },
         timestamp: 1,
         title: 1,
+        channel : 1, 
         description: 1,
         location: 1,
         category: 1,
