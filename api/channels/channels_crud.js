@@ -428,14 +428,36 @@ router.post("/channels/make-poll", verifyRequestCommon, (req, res) => {
   });
 });
 router.post("/channels/manager/get-member-list", verifyRequest, (req, res) => {
-  const decoded = req.decoded;
   // implicit
+  const decoded = req.decoded;
   const channel = decoded.channel.id;
-  dbo.collection(TABLE_USERS_ADMIN).find({ "channel.id": channel }).toArray( (err, result) => {
+  // explicit
+  let last_updated = req.body.last_updated;
+
+  if ( last_updated === undefined ) return res.json({
+    error: true,
+    mssg: "invalid request"
+  });
+  
+  last_updated = new Date(last_updated);
+  
+  const query_data = {
+    "channel.id": channel,
+  };
+
+  if(isValidDate(last_updated)) {
+    query_data["timestamp"] = {
+      $gt: last_updated
+    };
+  }
+  
+
+  dbo.collection(TABLE_USERS_ADMIN).find(query_data).toArray( (err, result) => {
     if(err) return res.json({
       error: true,
       mssg: err
     });
+    console.log(result);
     return res.json({
       error: false,
       data: result
@@ -451,6 +473,9 @@ router.post("/channels/manager/add-member", verifyRequest, (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   const name = req.body.name;
+  // generated
+  const timestamp = new Date();
+  const activated = false;
   if( email === undefined || password === undefined || name === undefined ) return res.json({
     error: true,
     mssg: "Invalid Request"
@@ -462,6 +487,7 @@ router.post("/channels/manager/add-member", verifyRequest, (req, res) => {
     name,
     college,
     channel,
+    timestamp
   }, (err, result) => {
     if(err) return res.json({
       error: true,
