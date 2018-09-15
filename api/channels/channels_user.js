@@ -58,7 +58,7 @@ router.post("/channels/user/check-subscribed", verifyRequest, (req, res) => {
   const decoded = req.decoded;
   const email = decoded.email;
   const channel = req.body.channel;
-  dbo.collection(TABLE_CHANNELS).find({ _id : channel}, {subscribers: { $elemMatch : email } }, (err, result)=>{
+  dbo.collection(TABLE_CHANNELS).find({subscribers: { $elemMatch : email } }, (err, result)=>{
     console.log(result);
     if(err){
       console.log("error", err);
