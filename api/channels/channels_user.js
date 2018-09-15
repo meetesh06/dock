@@ -31,7 +31,7 @@ router.post("/channels/user/susbcribe", verifyRequest, (req, res) => {
   const decoded = req.decoded;
   const email = decoded.email;
   const channel = req.body.channel;
-
+  console.log(channel);
   dbo.collection(TABLE_CHANNELS).findOne({ _id : channel}, (err)=>{
     if(err){
       console.log("error", err);
