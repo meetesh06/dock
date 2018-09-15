@@ -46,11 +46,39 @@ router.post("/channels/user/susbcribe", verifyRequest, (req, res) => {
           error: true,
           mssg: err
         });
-        return res.json({
-          error: false,
-          data: result
+        dbo.collection(TABLE_CHANNELS).update({ _id : channel }, { $addToSet: { subscribers : email }  }, (err, result) => {
+          console.log(err);
+          return res.json({
+            error: false,
+            data: result
+          });
         });
       });
+    }
+  });
+});
+
+
+router.post("/channels/user/check-subscribed", verifyRequest, (req, res) => {
+  const decoded = req.decoded;
+  const email = decoded.email;
+  const channel = req.body.channel;
+
+  db.posts.find( ).count()
+
+  dbo.collection(TABLE_CHANNELS).find({ _id : channel, subscribers: { $in : [email]}}, (err, result)=>{
+    console.log(result);
+    if(err){
+      console.log("error", err);
+      return res.json({
+        error: true,
+        mssg: err
+      });
+    } else {
+      return res.json({
+        error: false,
+        mssg: 'Found'
+      }); 
     }
   });
 });
