@@ -53,13 +53,51 @@ router.post("/channels/user/susbcribe", verifyRequest, (req, res) => {
   });
 });
 
+router.post("/channels/user/fetch-channel", verifyRequest, (req, res) => {
+  const decoded = req.decoded;
+  const email = decoded.email;
+  let _id = req.body.channel;
+
+  if ( _id === undefined ) return res.json({
+    error: true,
+    mssg: "invalid request"
+  });
+  const query_data =
+    {
+      $project: {
+        _id: 1,
+        subscribers: { $size: "$subscribers" },
+        name: 1,
+        description: 1,
+      }
+    };
+  const match = { 
+    $match: {
+      $and: [ 
+        { _id }
+      ]
+    }
+  };
+  
+  dbo.collection(TABLE_CHANNELS).aggregate([query_data, match]).toArray( (err, result) => {
+    if(err) return res.json({
+      error: true,
+      mssg: err
+    });
+    return res.json({
+      error: false,
+      data: result
+    });
+  });
+});
+
 
 router.post("/channels/user/check-subscribed", verifyRequest, (req, res) => {
   const decoded = req.decoded;
   const email = decoded.email;
   const channel = req.body.channel;
   dbo.collection(TABLE_CHANNELS).find({subscribers: { $elemMatch : email } }, (err, result)=>{
-    console.log(result);
+    console.log(err);
     if(err){
       console.log("error", err);
       return res.json({
@@ -70,7 +108,7 @@ router.post("/channels/user/check-subscribed", verifyRequest, (req, res) => {
       return res.json({
         error: false,
         mssg: 'Found'
-      }); 
+      });
     }
   });
 });
