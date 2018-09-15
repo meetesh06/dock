@@ -163,7 +163,7 @@ router.post("/events/user/fetch-event-data", verifyRequest, (req, res) => {
         email: 1,
         reach: { $size: "$reach" },
         views: { $size: "$views" },
-        enrollees: { $size: "$views" },
+        enrollees: { $size: "$enrollees" },
         title: 1,
         channel : 1, 
         description: 1,
