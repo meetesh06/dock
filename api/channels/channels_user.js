@@ -47,7 +47,7 @@ router.post("/channels/user/susbcribe", verifyRequest, (req, res) => {
           mssg: err
         });
         dbo.collection(TABLE_CHANNELS).update({ _id : channel }, { $addToSet: { subscribers : email }  }, (err, result) => {
-          console.log(err);
+          console.log(err, result);
           return res.json({
             error: false,
             data: result
