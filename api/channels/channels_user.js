@@ -33,6 +33,7 @@ router.post("/channels/user/susbcribe", verifyRequest, (req, res) => {
   const channel = req.body.channel;
   console.log(channel);
   dbo.collection(TABLE_CHANNELS).findOne({ _id : channel}, (err)=>{
+    console.log(err);
     if(err){
       console.log("error", err);
       return res.json({
@@ -40,7 +41,7 @@ router.post("/channels/user/susbcribe", verifyRequest, (req, res) => {
         mssg: err
       });
     } else {
-      dbo.collection(TABLE_CHANNELS).update({ channel }, { $addToSet: { subscribed_channels : email }  }, (err, result) => {
+      dbo.collection(TABLE_CHANNELS).update({ _id : channel }, { $addToSet: { subscribed_channels : email }  }, (err, result) => {
         console.log(err);
       });
       dbo.collection(TABLE_USERS).update({ email }, { $addToSet: { subscribed_channels : channel }  }, (err, result) => {
