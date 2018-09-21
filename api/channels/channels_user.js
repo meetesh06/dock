@@ -63,7 +63,7 @@ router.post("/channels/user/fetch-channel", verifyRequest, (req, res) => {
     mssg: "invalid request"
   });
   
-  dbo.collection(TABLE_CHANNELS).find({_id}, (err, result) =>{
+  dbo.collection(TABLE_CHANNELS).findOne({_id}, (err, result) =>{
     result['subscribed'] = result.subscribers.includes(email);
     result.subscribers = result.subscribers.length;
     return res.json({
