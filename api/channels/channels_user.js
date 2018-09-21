@@ -64,6 +64,7 @@ router.post("/channels/user/fetch-channel", verifyRequest, (req, res) => {
   });
   
   dbo.collection(TABLE_CHANNELS).findOne({_id}, (err, result) =>{
+    console.log(err, result);
     result['subscribed'] = result.subscribers.includes(email);
     result.subscribers = result.subscribers.length;
     return res.json({
