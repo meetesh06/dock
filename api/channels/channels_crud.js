@@ -427,6 +427,7 @@ router.post("/channels/make-poll", verifyRequestCommon, (req, res) => {
     });
   });
 });
+
 router.post("/channels/manager/get-member-list", verifyRequest, (req, res) => {
   // implicit
   const decoded = req.decoded;

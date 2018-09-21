@@ -62,32 +62,9 @@ router.post("/channels/user/fetch-channel", verifyRequest, (req, res) => {
     error: true,
     mssg: "invalid request"
   });
-  const query_data =
-    {
-      $project: {
-        _id: 1,
-        subscribers: { $size: "$subscribers" },
-        name: 1,
-        description: 1,
-      }
-    };
-  const match = { 
-    $match: {
-      $and: [ 
-        { _id }
-      ]
-    }
-  };
   
-  dbo.collection(TABLE_CHANNELS).aggregate([query_data, match]).toArray( (err, result) => {
-    if(err) return res.json({
-      error: true,
-      mssg: err
-    });
-    return res.json({
-      error: false,
-      data: result
-    });
+  dbo.collection(TABLE_CHANNELS).find({_id}, (err, result) =>{
+    console.log(result);
   });
 });
 
