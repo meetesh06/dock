@@ -338,6 +338,7 @@ router.post("/auth/new-user", (req, res) => {
               return res.json({
                 error: false,
                 token: JWTToken,
+                data : params,
                 mssg: "updated"
               });
             }
