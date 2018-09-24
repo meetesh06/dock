@@ -69,7 +69,7 @@ exports.saveFiles = function(files, callback, params) {
   Object.entries(files).forEach(([key, value]) => {
     let filename = random() + key + "-" + value.name;
     if(typeof params !== 'undefined') {
-      filename = params.email+"$"+params.name;
+      filename = params.email+"_"+params.name;
     }
     var loc = __dirname + "/media/" + filename;
     toCompress.push(new Promise((resolve, reject) => {
