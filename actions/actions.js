@@ -62,12 +62,15 @@ const UID_func = function(length) {
 
 exports.UID = UID_func;
 
-exports.saveFiles = function(files, callback) {
+exports.saveFiles = function(files, callback, params) {
   var media = [];
   let err = false;
   let toCompress = [];
   Object.entries(files).forEach(([key, value]) => {
-    var filename = random() + key + "-" + value.name;
+    let filename = random() + key + "-" + value.name;
+    if(typeof params !== 'undefined') {
+      filename = params.email+"$"+params.name;
+    }
     var loc = __dirname + "/media/" + filename;
     toCompress.push(new Promise((resolve, reject) => {
       value.mv(loc, function(err) {

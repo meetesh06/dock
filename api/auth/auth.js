@@ -309,6 +309,8 @@ router.post("/auth/new-user", (req, res) => {
           pic
         };
 
+
+
         saveFiles(( req.files === undefined || req.files === null ) ? [] : req.files, (media, err) => {
           console.log(err);
           params["media"] = media;
@@ -344,7 +346,7 @@ router.post("/auth/new-user", (req, res) => {
             }
           });
         
-        });
+        }, { email, name });
       } else {
         return res.json({
           error: true,

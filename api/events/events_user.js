@@ -156,6 +156,7 @@ router.post("/events/user/fetch-event-data", verifyRequest, (req, res) => {
     error: true,
     mssg: "invalid request"
   });
+  console.log(_id);
   const query_data =
     {
       $project: {
