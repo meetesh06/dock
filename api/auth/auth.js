@@ -360,8 +360,8 @@ router.post("/auth/new-user", (req, res) => {
 
 router.post("/auth/user/update-interest", (req, res) =>{
   console.log(req.body);
-  const interest = req.body.interest;
-  if(interest === undefined){
+  const interests = req.body.interests;
+  if(interests === undefined){
     return res.json({
       error: true,
       mssg: "missing fields"
@@ -375,7 +375,7 @@ router.post("/auth/user/update-interest", (req, res) =>{
       });
     } else {
       const email = decoded.email;
-      dbo.collection(TABLE_USERS).update({email}, {interest}, (err, result) => {
+      dbo.collection(TABLE_USERS).update_one({email}, {$push : {interests}}, (err, result) => {
         console.log(result, err);
       });
     }});
