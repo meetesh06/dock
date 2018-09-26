@@ -375,12 +375,16 @@ router.post("/auth/user/update-interest", (req, res) =>{
       });
     } else {
       const email = decoded.email;
-      dbo.collection(TABLE_USERS).update({email}, {$set : {interests : []}, $push: {
+
+      /* , $push: {
         interests: {
            $each: interests
         }
-     }}, (err, result) => {
-        console.log(result, err);
+     }*/
+      dbo.collection(TABLE_USERS).update({email}, {$set : {interests : []}}, (err, result) => {
+        dbo.collection(TABLE_USERS).update({email}, {$push : {interests : {$each : interests}}}, (err, result) => {
+          console.log(err, result);
+        });
       });
     }});
 });
