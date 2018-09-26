@@ -375,7 +375,7 @@ router.post("/auth/user/update-interest", (req, res) =>{
       });
     } else {
       const email = decoded.email;
-      dbo.collection(TABLE_USERS).update({email}, {$push : {interests : interests}, $position : 0}, (err, result) => {
+      dbo.collection(TABLE_USERS).update({email}, {$push : {interests}, $position : 0}, (err, result) => {
         console.log(result, err);
       });
     }});
