@@ -16,6 +16,7 @@ const cryptrObject = new cryptr(APP_SECRET_KEY);
 // const sendEmailHtml = actions.sendEmailHtml;
 const verifyManagerToken = actions.verifyManagerToken;
 const verifyTempToken = actions.verifyTempToken;
+const verifyUserToken = actions.verifyUserToken;
 const TABLE_USERS = constants.TABLE_USERS;
 const TABLE_USERS_ADMIN = constants.TABLE_USERS_ADMIN;
 const dbo = db.getDb();
@@ -355,6 +356,29 @@ router.post("/auth/new-user", (req, res) => {
       }
     }
   });
+});
+
+router.post("/auth/user/update-interest", (req, res) =>{
+  console.log(req.body);
+  const interest = req.body.interest;
+  if(interest === undefined){
+    return res.json({
+      error: true,
+      mssg: "missing fields"
+    });
+  }
+  verifyUserToken(req, (err, decoded) => {
+    if(err) {
+      return res.json({
+        error: true,
+        mssg: "Token Verification failed."
+      });
+    } else {
+      const email = decoded.email;
+      dbo.collection(TABLE_USERS).update({email}, {interest}, (err, result) => {
+        console.log(result, err);
+      });
+    }});
 });
 
 router.post("/auth/manager/signin", (req, res) => {
