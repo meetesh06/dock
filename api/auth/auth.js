@@ -377,8 +377,7 @@ router.post("/auth/user/update-interest", (req, res) =>{
       const email = decoded.email;
       dbo.collection(TABLE_USERS).update({email}, {$set : {interests : []}, $push: {
         interests: {
-           $each: interests,
-           $position: 0
+           $each: interests
         }
      }}, (err, result) => {
         console.log(result, err);
