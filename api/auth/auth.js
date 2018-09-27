@@ -357,7 +357,6 @@ router.post("/auth/new-user", (req, res) => {
 });
 
 router.post("/auth/user/update-interest", (req, res) =>{
-  console.log(req.body);
   const interests = req.body.interests;
   if(interests === undefined){
     return res.json({
@@ -367,6 +366,7 @@ router.post("/auth/user/update-interest", (req, res) =>{
   }
   verifyUserToken(req, (err, decoded) => {
     if(err) {
+      console.log(err);
       return res.json({
         error: true,
         mssg: "Token Verification failed."
@@ -382,7 +382,8 @@ router.post("/auth/user/update-interest", (req, res) =>{
             });
           }
           return res.json({
-            error : false
+            error : false,
+            mssg : 'sucess'
           })
         });
       });
