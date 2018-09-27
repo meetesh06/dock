@@ -330,7 +330,6 @@ router.post("/auth/new-user", (req, res) => {
                 email,
                 name,
                 college,
-                scope,
                 id,
                 gender,
                 user: true
