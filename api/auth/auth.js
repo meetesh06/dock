@@ -169,7 +169,7 @@ router.post("/auth/signin", (req, res) => {
           name: result.username,
           gender : result.gender,
           mobile : result.mobile,
-          id : (req.body.email + '-' + name).replace(/\./g, '$'),
+          id : (req.body.email + '-' + result.username).replace(/\./g, '$'),
           user: true
         },
         APP_SECRET_KEY, {
