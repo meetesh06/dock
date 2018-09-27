@@ -167,6 +167,9 @@ router.post("/auth/signin", (req, res) => {
           email: req.body.email,
           college: result.college,
           name: result.username,
+          gender : result.gender,
+          mobile : result.mobile,
+          id : (req.body.email + '-' + name).replace(/\./g, '$'),
           user: true
         },
         APP_SECRET_KEY, {
@@ -185,7 +188,7 @@ router.post("/auth/signin", (req, res) => {
           temp: true
         },
         APP_SECRET_KEY, {
-          expiresIn: "2h"
+          expiresIn: "3h"
         });
         return res.json({
           error: false,
@@ -276,18 +279,18 @@ router.post("/auth/new-user", (req, res) => {
       if(decoded.newUser === true) {
         let name = req.body.name;
         let email = decoded.email;
-        let scope = [];
         let college = req.body.college;
         let mobile = req.body.mobile;
         let gender = req.body.gender;
-        let pic = req.body.pic;
+        let id  = (email + '-' + name).replace(/\./g, '$');
 
-        if(pic === undefined || name === undefined || email === undefined || scope === undefined || college === undefined || gender === undefined || mobile === undefined) {
+        if(name === undefined || email === undefined || scope === undefined || college === undefined || gender === undefined || mobile === undefined) {
           return res.json({
             error: true,
             mssg: "Invalid request"
           });
         }
+
         if(!(gender === "M" || gender === "F")) {
           return res.json({
             error: true,
@@ -303,15 +306,12 @@ router.post("/auth/new-user", (req, res) => {
         const params = {
           name,
           email,
-          scope,
           college,
           mobile,
           gender,
-          pic
+          id,
         };
-
-
-
+        
         saveFiles(( req.files === undefined || req.files === null ) ? [] : req.files, (media, err) => {
           console.log(err);
           params["media"] = media;
@@ -331,8 +331,8 @@ router.post("/auth/new-user", (req, res) => {
                 name,
                 college,
                 scope,
+                id,
                 gender,
-                pic,
                 user: true
               },
               APP_SECRET_KEY, {
@@ -342,11 +342,10 @@ router.post("/auth/new-user", (req, res) => {
                 error: false,
                 token: JWTToken,
                 data : params,
-                mssg: "updated"
+                mssg: "success"
               });
             }
           });
-        
         }, { email, name });
       } else {
         return res.json({

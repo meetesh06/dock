@@ -8,6 +8,8 @@ const constants = require("../../constants");
 const verifyUserToken = actions.verifyUserToken;
 const isValidDate = actions.isValidDate;
 const TABLE_EVENTS = constants.TABLE_EVENTS;
+const TABLE_USERS = constants.TABLE_USERS;
+const TABLE_CHANNELS = constants.TABLE_CHANNELS;
 const dbo = db.getDb();
 
 // DOCUMENTATION
@@ -203,6 +205,34 @@ router.post("/events/user/fetch-event-data", verifyRequest, (req, res) => {
       { _id },
       { $addToSet: { "views" : { email, timestamp: new Date().getUTCMonth() + 1 } } }
     );
+  });
+});
+
+router.post("/events/user/enroll", verifyRequest, (req, res) => {
+  const decoded = req.decoded;
+  const id = decoded.id;
+  const email = decoded.email;
+  const event_id = req.body._id;
+
+  dbo.collection(TABLE_EVENTS).update({ _id : event_id}, { $addToSet: { enrollees : id }  }, (err, result)=>{
+    if(result){
+      dbo.collection(TABLE_USERS).update({ email }, { $addToSet: { events : event_id }  }, (err, result1) => {
+        if(err)
+          return res.json({
+            error: true,
+            mssg : err
+          });
+        return res.json({
+          error : false,
+          mssg : "sucess"
+        });
+      });
+    } else {
+      return res.json({
+        error: true,
+        mssg: err
+      });
+    }
   });
 });
 

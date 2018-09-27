@@ -99,8 +99,6 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
   const price = req.body.price;
   const available_seats = req.body.available_seats;
   
-  console.log(price, available_seats);
-
   if( title === undefined || description === undefined || location === undefined || category === undefined || faq === undefined || tags === undefined || tags.trim() === "" || reg_start === undefined || reg_end === undefined || date === undefined || price === undefined ||contact_details === undefined || available_seats === undefined ) {
     return res.json({
       error: true,
