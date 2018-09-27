@@ -284,7 +284,7 @@ router.post("/auth/new-user", (req, res) => {
         let gender = req.body.gender;
         let id  = (email + '-' + name).replace(/\./g, '$');
 
-        if(name === undefined || email === undefined || scope === undefined || college === undefined || gender === undefined || mobile === undefined) {
+        if(name === undefined || email === undefined || college === undefined || gender === undefined || mobile === undefined) {
           return res.json({
             error: true,
             mssg: "Invalid request"
@@ -311,7 +311,7 @@ router.post("/auth/new-user", (req, res) => {
           gender,
           id,
         };
-        
+
         saveFiles(( req.files === undefined || req.files === null ) ? [] : req.files, (media, err) => {
           console.log(err);
           params["media"] = media;
