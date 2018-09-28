@@ -1,6 +1,7 @@
-// process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0; --> This hack I was using to skip the certificate test before, no longer needed
+/*
+  * API COLLECTION FOR AUTHORIZATION - REQUIRED BY EVERY API INIT
+*/
 const APP_SECRET_KEY = "KmnIIN60jZSN4wWXN52F-dope";
-
 const express = require("express");
 const emailValidator = require("email-validator");
 const actions = require("../../actions/actions");
@@ -13,7 +14,6 @@ const passwordHash = require("password-hash");
 const saveFiles = actions.saveFiles;
 
 const cryptrObject = new cryptr(APP_SECRET_KEY);
-// const sendEmailHtml = actions.sendEmailHtml;
 const verifyManagerToken = actions.verifyManagerToken;
 const verifyTempToken = actions.verifyTempToken;
 const verifyUserToken = actions.verifyUserToken;
@@ -22,83 +22,15 @@ const TABLE_USERS_ADMIN = constants.TABLE_USERS_ADMIN;
 const dbo = db.getDb();
 const router = express.Router();
 
-// middlewares here
 router.use(bodyParser.json()); // support json encoded bodies
 router.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
-// DOCUMENTATION
-// Here we take care of the distribution of the tokens so it it very important to
-// make sure checks are as good as possible, though things might slip just keep an
-// eye out.
-// These routes only operate on temporary tokens but they hand out permanent or session tokens to
-// the users
-
-// Things to consider: 
-//  This API is responsible for the safety of all the other routes
-//  Changes here will barely be changed, so no loose ends here
-//  Always check the return type of functions that are not written by you
-//  Remove Redundancy
-//  All responses are by default status 200, no need to specify that every request
-
-// Something to keep in mind
-//  There are two types of tokens issued:
-//    Temporary and Permanent - 
-//    The methods verifyTempToken and verifyToken from actions.js are responsibe for these checks
-//    To create a Temporary token, just encrypt a parameter named { temp: true } in the payload
-//    The verifyTempToken - will only allow temporary tokens
-//    The verifyToken - will only allow ordinary tokens
-
-// Everything About using these routes
-//
-// The pin stored inside the token is now encrypted, hence the loophole of being
-// able to get the pin just by decrypting the token is dealt with, also decided to store only non
-// sensitive data in the token, no need of encrypted tokens in our case
-//
-// 1) /auth/signin -> 
-//  expects: 
-//    1) email - string
-//  replies:
-//    1) error - boolean
-//    2) token - string 
-//
-// 2) /auth/verify -> 
-//  expects: 
-//    1) email - string
-//    2) pin - string/number ( no need to trim, all that is taken care of )
-//  replies:
-//    (i) if existing user
-//      1) error - boolean
-//      2) newUser - boolean
-//      3) token - string
-//      3) data - object
-//    (ii) if new user
-//      1) error - boolean
-//      2) newuser - boolean
-//      3) token - string
-//
-// 3) /auth/new-user ->
-// expects
-//   1) roll_no - string
-//   2) username - string
-//   3) email - string
-//   4) scope - string
-//   5) college - string
-//   6) gender - string( "M" or "F" )
-// replies:
-//   1) error - boolean
-//   2) token - string
-//   3) mssg - string
-//
-// 4) /auth/manager/signin ->
-// expects
-//   1) email - string
-//   2) password - string
-// replies:
-//   1) error - boolean
-//   2) token - string
-//   3) mssg - string
-//
-
+/*
+  * API end point to verify a manager
+  * REQUIRE TOKEN CHECK
+  * Require ()
+  * Return (NEW JWT TOKEN)
+*/
 router.post("/auth/manager/verify", (req, res) => {
   verifyManagerToken(req, (err, decoded) => {
     if(err) {
@@ -133,6 +65,18 @@ router.post("/auth/manager/verify", (req, res) => {
   });
 });
 
+router.get("/auth/user/verify", (req, res) =>{
+  console.log(req);
+  console.log("BREAK");
+  console.log(req.body);
+});
+
+/*
+  * API end point for signin a user
+  * AUTH TOKEN REQUIRED FROM GOOGLE/FB
+  * Require (verified_email)
+  * 
+*/
 router.post("/auth/signin", (req, res) => {
   if (!req.body) return res.json({
     error: true,
@@ -169,7 +113,7 @@ router.post("/auth/signin", (req, res) => {
           name: result.username,
           gender : result.gender,
           mobile : result.mobile,
-          id : (req.body.email + '-' + result.username).replace(/\./g, '$'),
+          id : (req.body.email + "-" + result.username).replace(/\./g, "$"),
           user: true
         },
         APP_SECRET_KEY, {
@@ -282,7 +226,7 @@ router.post("/auth/new-user", (req, res) => {
         let college = req.body.college;
         let mobile = req.body.mobile;
         let gender = req.body.gender;
-        let id  = (email + '-' + name).replace(/\./g, '$');
+        let id  = (email + "-" + name).replace(/\./g, "$");
 
         if(name === undefined || email === undefined || college === undefined || gender === undefined || mobile === undefined) {
           return res.json({
@@ -383,8 +327,8 @@ router.post("/auth/user/update-interest", (req, res) =>{
           }
           return res.json({
             error : false,
-            mssg : 'sucess'
-          })
+            mssg : "sucess"
+          });
         });
       });
     }});

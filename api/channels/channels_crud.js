@@ -476,7 +476,6 @@ router.post("/channels/manager/add-member", verifyRequest, (req, res) => {
   const name = req.body.name;
   // generated
   const timestamp = new Date();
-  const activated = false;
   if( email === undefined || password === undefined || name === undefined ) return res.json({
     error: true,
     mssg: "Invalid Request"
