@@ -202,7 +202,7 @@ router.post("/channels/manager/create-poll", verifyRequest, (req, res) => {
   const poll_type = req.body.poll_type;
   let options = req.body.options;
   
-  if ( message === undefined || options === undefined || type === undefined)
+  if ( message === undefined || options === undefined || poll_type === undefined)
     return res.json({
       error: true,
       mssg: "missing fields"
