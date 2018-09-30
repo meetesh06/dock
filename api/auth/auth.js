@@ -413,6 +413,7 @@ async function verify(token) {
   });
   const payload = ticket.getPayload();
   const aud = payload['aud'];
+  console.log(token, aud);
   if(aud === CLIENT_ID)
     return true
   else
