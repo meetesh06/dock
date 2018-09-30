@@ -12,7 +12,7 @@ const constants = require("../../constants");
 const cryptr = require("cryptr");
 const passwordHash = require("password-hash");
 const saveFiles = actions.saveFiles;
-
+const CLIENT_ID = "7449865696-f0gevigpsirhflrihhvvhh1h18st6ujg.apps.googleusercontent.com";
 const {OAuth2Client} = require("google-auth-library");
 const client = new OAuth2Client(CLIENT_ID);
 
