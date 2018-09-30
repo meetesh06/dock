@@ -45,4 +45,5 @@ db.connectToServer( function( err ) {
 /*  
   * USERNAME : ssh -p 7822 mycampu1@mycampusdock.com
   * PASSWORD : YOU ALREADY KNOW IF YOU HAVE ACCESS TO THESE FILES!
+  * ogil7190 : sha1$ec32d226$1$f970204d1702048853bd67864e43e1b581bc6327
 */
