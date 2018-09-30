@@ -20,6 +20,7 @@ const verifyManagerToken = actions.verifyManagerToken;
 const verifyTempToken = actions.verifyTempToken;
 const verifyUserToken = actions.verifyUserToken;
 const TABLE_USERS = constants.TABLE_USERS;
+const TABLE_CHANNELS = constants.TABLE_CHANNELS;
 const TABLE_USERS_ADMIN = constants.TABLE_USERS_ADMIN;
 const dbo = db.getDb();
 const router = express.Router();
@@ -315,35 +316,48 @@ router.post("/auth/manager/signin", (req, res) => {
       });
     }
     if (data) {
-      if (passwordHash.verify(password, data.password)) {
-        const token_payload = {
-          email: data.email,
-          name: data.name,
-          college: data.college,
-          scope: data.scope,
-          channel: data.channel,
-          limits: data.limits,
-          manager: true
-        };
-        jwt.sign(token_payload, APP_SECRET_KEY, { expiresIn: "100d" }, function(err, token) {
-          if(err) {
-            return res.json({
-              error: true,
-              mssg: "error signing token"
+      dbo.collection(TABLE_CHANNELS).findOne({ _id : channel_id}, (err, result)=>{
+        if(result){
+          console.log(result);
+          if (passwordHash.verify(password, data.password)) {
+            const token_payload = {
+              email: data.email,
+              name: data.name,
+              college: data.college,
+              scope: data.scope,
+              channel: data.channel,
+              limits: data.limits,
+              manager: true
+            };
+            jwt.sign(token_payload, APP_SECRET_KEY, { expiresIn: "100d" }, function(err, token) {
+              if(err) {
+                return res.json({
+                  error: true,
+                  mssg: "error signing token"
+                });
+              }
+              return res.json({
+                error: false,
+                token
+              });
             });
           }
+          else {
+            return res.json({
+              error: true,
+              mssg: "invalid username/password combination"
+            });
+          }
+        }
+        else {
           return res.json({
-            error: false,
-            token
+            error: true,
+            mssg: "Channel Does not exist"
           });
-        });
-      } else {
-        return res.json({
-          error: true,
-          mssg: "invalid username/password combination"
-        });
-      }
-    } else {
+        }
+      });
+    }
+    else {
       return res.json({
         error: true,
         mssg: "invalid username/password combination"
@@ -351,7 +365,6 @@ router.post("/auth/manager/signin", (req, res) => {
     }
   });
 });
-
 
 /* HELPERS */
 async function verify(token) {
