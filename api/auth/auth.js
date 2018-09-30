@@ -199,7 +199,6 @@ router.post("/auth/new-user", (req, res) => {
         };
 
         saveFiles(( req.files === undefined || req.files === null ) ? [] : req.files, (media, err) => {
-          console.log(err);
           params["media"] = media;
           dbo.collection(TABLE_USERS).replaceOne({
             email
