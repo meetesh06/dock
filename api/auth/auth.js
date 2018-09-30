@@ -325,7 +325,7 @@ router.post("/auth/manager/signin", (req, res) => {
               name: data.name,
               college: data.college,
               scope: data.scope,
-              channel: data.channel,
+              channel: result,
               limits: data.limits,
               manager: true
             };
