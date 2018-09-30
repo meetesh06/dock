@@ -407,17 +407,22 @@ router.post("/auth/manager/signin", (req, res) => {
 });
 
 async function verify(token) {
-  const ticket = await client.verifyIdToken({
-      idToken: token,
-      audience: CLIENT_ID,
-  });
-  const payload = ticket.getPayload();
-  const aud = payload['aud'];
-  console.log(token, aud);
-  if(aud === CLIENT_ID)
-    return true
-  else
-    return false
+  try{
+    const ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    const aud = payload['aud'];
+    console.log(token, aud);
+    if(aud === CLIENT_ID)
+      return true;
+    else
+      return false;
+  } catch(e){
+    console.log(e)
+  }
+  return false;
 }
 
 module.exports = router;
