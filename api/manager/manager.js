@@ -1,29 +1,22 @@
-// const APP_SECRET_KEY = "KmnIIN60jZSN4wWXN52F-dope";
-
+/*  API COLLECTIONS FOR MANAGER ROUTES */
 const express = require("express");
 const actions = require("../../actions/actions");
 const constants = require("../../constants");
 const bodyParser = require("body-parser");
 const db = require("../../db");
-
 const dbo = db.getDb();
 const router = express.Router();
 const verifyManagerToken = actions.verifyManagerToken;
 const TABLE_USERS_ADMIN = constants.TABLE_USERS_ADMIN;
 
-// middlewares here
-router.use(bodyParser.json()); // support json encoded bodies
-router.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
+router.use(bodyParser.json());
+router.use(bodyParser.urlencoded({ extended: true }));
 
-// DOCUMENTATION
-// Here we send the user his account bundle
-
-// What is a account bundle ?
-// The account bundle quantifies to maintain this information about the user
-//  1) Latest Hashsum
-//  2) List of event_ids
-//  3) List of notification_ids
-
+/*
+  * API end point to get latest bundle for manager
+  * Requires (TOKEN, hash)
+  * Returns (NEW BUNDLE)
+*/
 router.post("/manager/get-latest-bundle", (req, res) => {
   if (!req.body) return res.json({
     error: true,
@@ -69,12 +62,13 @@ router.post("/manager/get-latest-bundle", (req, res) => {
                 }
               });
             }
-          } else {
+          } 
+          else {
             return res.json({
               error: true,
               mssg: "Unknown error occured"
             });
-          }          
+          }       
         }
       });
     }

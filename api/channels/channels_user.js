@@ -1,6 +1,4 @@
-/*
-  * API COLLECTION FOR CHANNEL - USER SIDE
-*/
+/* API COLLECTION FOR CHANNEL - USER SIDE */
 const express = require("express");
 const actions = require("../../actions/actions");
 const db = require("../../db");
@@ -29,8 +27,7 @@ const verifyRequest = function (req, res, next) {
 
 /*
   * API end point to follow a channel, update DB with the userid
-  * TOKEN CHECK REQUIRED
-  * Requires (channel_id)
+  * Requires (TOKEN, channel_id)
   * Returns (ACKNOWLEDGEMENT)
 */
 router.post("/channels/user/follow", verifyRequest, (req, res) => {
@@ -66,8 +63,7 @@ router.post("/channels/user/follow", verifyRequest, (req, res) => {
 
 /*
   * API end point to fetch details for a channel
-  * TOKEN CHECK REQUIRED
-  * Requires (channel_id)
+  * Requires (TOKEN, channel_id)
   * Returns (ACKNOWLEDGEMENT, CHANNEL DATA OBJECT - CENSORED) 
 */
 router.post("/channels/user/fetch-channel", verifyRequest, (req, res) => {

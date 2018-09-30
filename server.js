@@ -1,26 +1,27 @@
+/* MAIN */
 const express = require("express");
 const fileUpload = require("express-fileupload");
-// Host and port information
 const PORT = 65534;
 const HOST = "127.0.0.1";
-// Importing the required route apis
-var db = require("./db");
-// express starts here
+const db = require("./db");
 const app = express();
-// defining middleware and other things
+
 app.use(express.static("email_resources"));
 app.use(express.static("actions/media"));
 app.use(fileUpload());
+
 db.connectToServer( function( err ) {
   if (err) {
-    console.log("Unable to connect to Mongo.");
+    console.log("Unable to connect to MongoDB.");
     process.exit(1);
   } else {
+
     const events_crud = require("./api/events/events_crud");
     const events_user = require("./api/events/events_user");
     const events_manager = require("./api/events/events_manager");
     const channels = require("./api/channels/channels_crud");
     const channels_user = require("./api/channels/channels_user");
+    const channels_manager = require("./api/channels/channels_manager");
     const auth = require("./api/auth/auth");
     const manager = require("./api/manager/manager");
     const others = require("./api/other/others");
@@ -30,14 +31,18 @@ db.connectToServer( function( err ) {
     app.use("/", events_manager);
     app.use("/", channels);
     app.use("/", channels_user);
+    app.use("/", channels_manager);
     app.use("/", auth);
     app.use("/", manager);
     app.use("/", others);
 
-    // ssh -p 7822 mycampu1@mycampusdock.com;
     app.listen(PORT, HOST, () => {
-      console.log("server is live on http://"+HOST+":"+PORT);
+      console.log("Dock API Server is live on http://"+HOST+":"+PORT);
     });
   }
 });
 
+/*  
+  * USERNAME : ssh -p 7822 mycampu1@mycampusdock.com
+  * PASSWORD : YOU ALREADY KNOW IF YOU HAVE ACCESS TO THESE FILES!
+*/

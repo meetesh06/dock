@@ -1,17 +1,14 @@
+/* API ACTION HANDLER */
 const APP_SECRET_KEY = "KmnIIN60jZSN4wWXN52F-dope";
-
 const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
 const random = require("hat");
 const imagemin = require("imagemin");
 const imageminWebp = require("imagemin-webp");
 const constants = require("../constants");
-// const fs = require("fs");
 const admin = require("firebase-admin");
 const db = require("../db");
 const serviceAccount = require("./admincred.json");
-// const imageminMozjpeg = require("imagemin-mozjpeg");
-
 const TABLE_SCOPE = constants.TABLE_SCOPE;
 const MAX_RETRIES_MESSAGING = constants.MAX_RETRIES_MESSAGING;
 const dbo = db.getDb();
@@ -21,17 +18,8 @@ admin.initializeApp({
   databaseURL: "https://mycampusdock-12f5a.firebaseio.com"
 });
 
-// Only token verification happens here, do not sign tokens here
-
-// sendEmailHtml(reciever, subject, html, callback)
-
-// There are three type of tokens
-//  1) Temporary - { temp: true }
-//  2) Manager - { manager: true }
-//  1) User - { user: true }
-
 const smtpTransport = nodemailer.createTransport({
-  host: "sg1-ls1.a2hosting.com", // this domain for all TLS communication with server services
+  host: "sg1-ls1.a2hosting.com",
   port: 465,
   secure: true,
   auth: {
@@ -42,7 +30,7 @@ const smtpTransport = nodemailer.createTransport({
 
 exports.sendEmailHtml = function(reciever, subject, html, callback) {
   var mailOptions = {
-    from: "\"Campus Dock\" <support@mycampusdock.com>",
+    from: "\"Dock\" <support@mycampusdock.com>",
     to: reciever,
     subject: subject,
     html
@@ -54,7 +42,7 @@ exports.sendEmailHtml = function(reciever, subject, html, callback) {
 
 const UID_func = function(length) {
   var text = "";
-  var possible = "0123456789ABCDEFGHIJKLMNO8PQRSTUVWXYZabcd8efghijklmnopqrstuvwxyz0123456789";
+  var possible = "0123456789ABCD7EFGHIJ6KLMNO8PQRSTUVW8XYZabcd8efghijklmnopqrstuvwxyz0123456789";
   for (var i = 0; i < length; i++)
     text += possible.charAt(Math.floor(Math.random() * possible.length));
   return text;
@@ -88,10 +76,6 @@ exports.saveFiles = function(files, callback, params) {
           }).catch(err => {
             console.log(err);
             return reject("reject");
-          }).then( () => {
-            // fs.unlink(loc, ()=> {
-            //   console.log("file delete async done");
-            // });
           });
         }
       });
@@ -107,9 +91,10 @@ exports.saveFiles = function(files, callback, params) {
 
 exports.updateScopeAsync = function(audience, type) {
   let i;
-  // 0 - event
-  // 1 - post
-  // 2 - poll
+
+  /* 0 - event */
+  /* 1 - post */
+  /* 2 - poll */
   let current_hash = "d_hash";
   switch (type) {
   case 0:
@@ -140,7 +125,6 @@ exports.updateScopeAsync = function(audience, type) {
 exports.sendToScope = function(scopeArray, payload) {
   let currentQueue = [...scopeArray];
   let i = 0;
-  console.log(currentQueue);
   for (i = 0; i < currentQueue.length; i++) {
     sendToIndividual(currentQueue[i], payload, 0);
   }

@@ -1,5 +1,5 @@
 /*
-  * API COLLECTION FOR AUTHORIZATION - REQUIRED BY EVERY API INIT
+  * API COLLECTION FOR AUTHORIZATION - REQUIRED BY EVERY API
 */
 const APP_SECRET_KEY = "KmnIIN60jZSN4wWXN52F-dope";
 const express = require("express");
@@ -23,14 +23,13 @@ const TABLE_USERS = constants.TABLE_USERS;
 const TABLE_USERS_ADMIN = constants.TABLE_USERS_ADMIN;
 const dbo = db.getDb();
 const router = express.Router();
-
-router.use(bodyParser.json()); // support json encoded bodies
-router.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
+router.use(bodyParser.json());
+router.use(bodyParser.urlencoded({ extended: true }));
 
 /*
   * API end point to verify a manager
   * TOKEN CHECK REQUIRED
-  * Require ()
+  * Require (Token)
   * Return (NEW JWT TOKEN)
 */
 router.post("/auth/manager/verify", (req, res) => {
@@ -71,7 +70,7 @@ router.post("/auth/manager/verify", (req, res) => {
   * API end point for signin a user
   * NO TOKEN CHECK
   * Require (verified_email, token_generated_from_google)
-  * Return (*CREATE A NEW USER, NEW TOKEN)
+  * Return (CREATE A NEW USER, NEW TOKEN)
 */
 router.post("/auth/signin", async (req, res) => {
   if (!req.body) return res.json({
@@ -148,74 +147,12 @@ router.post("/auth/signin", async (req, res) => {
   }
 });
 
-router.post("/auth/verify", (req, res) => {
-  verifyTempToken(req, (err, decoded) => {
-    if(err) {
-      return res.json({
-        error: true,
-        mssg: "Token Verification failed."
-      });
-    } else {
-      const decryptedPin = cryptrObject.decrypt(decoded.pin);
-      if (decryptedPin+"".trim() === req.body.pin+"".trim() && decoded.email === req.body.email) {
-        const email = decoded.email;
-        dbo.collection(TABLE_USERS).findOne(
-          {
-            email
-          }, (err, result) => {
-            if(err) {
-              return res.json({
-                error: true,
-                mssg: "error processing request"
-              });
-            }
-            // result === null, If the user does not exist
-            // result !== This is the user data
-            if(result) {
-              const token = jwt.sign({
-                email: req.body.email,
-                college: decoded.college,
-                name: result.name,
-                gender : result.gender,
-                scope: result.scope,
-                user: true
-              },
-              APP_SECRET_KEY, {
-                expiresIn: "100d"
-              });
-              
-              return res.json({
-                error: false,
-                newUser: false,
-                token,
-                data: result
-              });
-            } else {
-              const token = jwt.sign({
-                email: req.body.email,
-                newUser: true,
-                temp: true
-              },
-              APP_SECRET_KEY, {
-                expiresIn: "2h"
-              });
-              return res.json({
-                error: false,
-                newUser: true,
-                token
-              });
-            }
-          });
-      } else {
-        return res.json({
-          error: true,
-          mssg: "authentication failed"
-        });
-      }
-    }
-  });
-});
-
+/*
+  * API end point to generate new user
+  * TEMP TOKEN CHECK REQUIRED
+  * Requires (name, email, verified_college, mobile, gender, pic uri)
+  * returns ( NEW TOKEN, Data)
+*/
 router.post("/auth/new-user", (req, res) => {
   console.log(req.body);
   verifyTempToken(req, (err, decoded) => {
@@ -252,13 +189,14 @@ router.post("/auth/new-user", (req, res) => {
             mssg: "invalid email"
           });
         }
+
         const params = {
           name,
           email,
           college,
           mobile,
           gender,
-          id,
+          _id : id,
         };
 
         saveFiles(( req.files === undefined || req.files === null ) ? [] : req.files, (media, err) => {
@@ -290,7 +228,6 @@ router.post("/auth/new-user", (req, res) => {
                 error: false,
                 token: JWTToken,
                 data : params,
-                mssg: "success"
               });
             }
           });
@@ -305,6 +242,12 @@ router.post("/auth/new-user", (req, res) => {
   });
 });
 
+/*
+  * API end point to update interests of a user
+  * TOKEN CHECK REQUIRED
+  * Requires (token, interests_array)
+  * returns (ACKNOWLEDGEMENT)
+*/
 router.post("/auth/user/update-interest", (req, res) =>{
   const interests = req.body.interests;
   if(interests === undefined){
@@ -339,6 +282,12 @@ router.post("/auth/user/update-interest", (req, res) =>{
     }});
 });
 
+/*
+  * API end point to signin manager side
+  * NO TOKEN CHECK REQUIRED
+  * Requires (email, password)
+  * returns (NEW TOKEN)
+*/
 router.post("/auth/manager/signin", (req, res) => {
   if (!req.body) return res.json({
     error: true,
@@ -358,7 +307,6 @@ router.post("/auth/manager/signin", (req, res) => {
       mssg: "invalid email"
     });
   }
-  // do the login part here
   dbo.collection(TABLE_USERS_ADMIN).findOne({
     email
   }, function(err, data) {
@@ -406,6 +354,8 @@ router.post("/auth/manager/signin", (req, res) => {
   });
 });
 
+
+/* HELPERS */
 async function verify(token) {
   try{
     const ticket = await client.verifyIdToken({
@@ -420,7 +370,7 @@ async function verify(token) {
     else
       return false;
   } catch(e){
-    console.log(e)
+    console.log('INVALID TOKEN FOUND');
   }
   return false;
 }

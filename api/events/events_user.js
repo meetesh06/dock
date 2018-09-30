@@ -1,54 +1,16 @@
-// const APP_SECRET_KEY = "KmnIIN60jZSN4wWXN52F-dope";
-
+/* API COLLECTIONS FOR EVENT USER SIDE */
 const express = require("express");
 const actions = require("../../actions/actions");
 const db = require("../../db");
 const constants = require("../../constants");
-
 const verifyUserToken = actions.verifyUserToken;
 const isValidDate = actions.isValidDate;
 const TABLE_EVENTS = constants.TABLE_EVENTS;
 const TABLE_USERS = constants.TABLE_USERS;
-const TABLE_CHANNELS = constants.TABLE_CHANNELS;
 const dbo = db.getDb();
-
-// DOCUMENTATION
-// Here we take care of the creation of the CRUD of the events  
-
-// Everything About using these routes
-//
-// All the token verification here are strictly done using permnent tokens.
-//
-// 1) /events/user/get-event-list -> 
-//  expects: 
-//    1) .. event_payload
-//  replies:
-//    1) error - boolean
-//    2) mssg - string
-//  other: 
-//    sends a update to the scope
-//    sends a email to the creator
-//
-// 2) /events/user/fetch-event-data -> 
-//  expects: 
-//    1) _id: id of the event
-//  replies:
-//    1) error - boolean
-//    2) mssg - string
-//
-// 3) /events/user/get-channel-event-list -> 
-//  expects: 
-//    1) channel - String (channel id)
-//  replies:
-//    1) error - boolean
-//    2) mssg - string
-//
-// NEW CHANGES:
-//  The Views and Reach are internally implemented, more accurate and faster.
-//  
-
 const router = express.Router();
-// Event Route Middleware
+
+/* HELPER */
 const verifyRequest = function (req, res, next) {
   verifyUserToken(req, (err, decoded) => {
     if(err) {
@@ -64,18 +26,16 @@ const verifyRequest = function (req, res, next) {
   });
 };
 
-// USER TOKEN DATA
-// email
-// college
-// name
-// user
-
+/*
+  * API end point to get event list
+  * Requires (TOKEN, last_updated)
+  * Return (list_events, UPDATES_REACH)
+*/
 router.post("/events/user/get-event-list", verifyRequest, (req, res) => {
-  // implicit
   const decoded = req.decoded;
   const college = decoded.college;
   const email = decoded.email;
-  // explicit
+
   let last_updated = req.body.last_updated;
 
   if ( last_updated === undefined ) return res.json({
@@ -133,32 +93,38 @@ router.post("/events/user/get-event-list", verifyRequest, (req, res) => {
       error: true,
       mssg: err
     });
+
     res.json({
       error: false,
       data: result
     });
+
     const event_list = result.map(a => a._id);
     if(event_list.length === 0) return;
+
     dbo.collection(TABLE_EVENTS).updateMany(
       { _id: { $in: event_list } },
       { $addToSet: { "reach" : { email, timestamp: new Date() } } }
     );
   });
-
 });
 
+/*
+  * API end point to fetch event data
+  * Requires (TOKEN, event_id)
+  * Returns (event_data_object, UPDATES_VIEWS)
+*/
 router.post("/events/user/fetch-event-data", verifyRequest, (req, res) => {
   const decoded = req.decoded;
   const email = decoded.email;
-  
-  // explicit
+
   let _id = req.body._id;
 
   if ( _id === undefined ) return res.json({
     error: true,
     mssg: "invalid request"
   });
-  console.log(_id);
+
   const query_data =
     {
       $project: {
@@ -208,10 +174,16 @@ router.post("/events/user/fetch-event-data", verifyRequest, (req, res) => {
   });
 });
 
+/*
+  * API end point to enroll user to an event
+  * Requires (TOKEN, event_id)
+  * Returns (ACKNOWLEDGEMENT)
+*/
 router.post("/events/user/enroll", verifyRequest, (req, res) => {
   const decoded = req.decoded;
   const id = decoded.id;
   const email = decoded.email;
+
   const event_id = req.body._id;
 
   dbo.collection(TABLE_EVENTS).update({ _id : event_id}, { $addToSet: { enrollees : id }  }, (err, result)=>{
@@ -222,6 +194,7 @@ router.post("/events/user/enroll", verifyRequest, (req, res) => {
             error: true,
             mssg : err
           });
+        console.log(result1);
         return res.json({
           error : false,
           mssg : "sucess"
@@ -236,14 +209,18 @@ router.post("/events/user/enroll", verifyRequest, (req, res) => {
   });
 });
 
+/*
+  * API end point to get event list of a channel
+  * Requires (TOKEN, channel)
+  * Returns (event_list, UPDATES_REACH)
+*/
 router.post("/events/user/get-channel-event-list", verifyRequest, (req, res) => {
-  // implicit
   const decoded = req.decoded;
   const email = decoded.email;
-  // explicit
-  let channel = req.body.channel;
 
-  if ( channel === undefined ) return res.json({
+  let channel_id = req.body.channel_id;
+
+  if ( channel_id === undefined ) return res.json({
     error: true,
     mssg: "invalid request"
   });
@@ -280,7 +257,7 @@ router.post("/events/user/get-channel-event-list", verifyRequest, (req, res) => 
   const match = { 
     $match: {
       $and: [ 
-        { channel }
+        { channel : channel_id }
       ]
     }
   };
@@ -301,8 +278,6 @@ router.post("/events/user/get-channel-event-list", verifyRequest, (req, res) => 
       { $addToSet: { "reach" : { email, timestamp: new Date() } } }
     );
   });
-
 });
-
 
 module.exports = router;
