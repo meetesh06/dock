@@ -1,5 +1,5 @@
 module.exports = Object.freeze({
-  TABLE_EVENTS: "events_test",
+  TABLE_EVENTS: "events",
   TABLE_SCOPE: "scopes",
   TABLE_CHANNELS : "channels",
   TABLE_USERS: "users",
@@ -7,5 +7,5 @@ module.exports = Object.freeze({
   TABLE_USERS_ADMIN: "users_admin",
   TABLE_POSTS: "posts",
   TABLE_POLLS: "polls",
-  TABLE_ACTIVITY: "activity"
+  TABLE_ACTIVITY: "activities"
 });
