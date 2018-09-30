@@ -15,7 +15,6 @@ const saveFiles = actions.saveFiles;
 const CLIENT_ID = "7449865696-f0gevigpsirhflrihhvvhh1h18st6ujg.apps.googleusercontent.com";
 const {OAuth2Client} = require("google-auth-library");
 const client = new OAuth2Client(CLIENT_ID);
-
 const cryptrObject = new cryptr(APP_SECRET_KEY);
 const verifyManagerToken = actions.verifyManagerToken;
 const verifyTempToken = actions.verifyTempToken;
@@ -81,7 +80,6 @@ router.post("/auth/signin", (req, res) => {
   });
   const email = req.body.email;
   const token = req.body.token;
-  verify(token);
   if ( email === undefined  || token === undefined) {
     return res.json({
       error: true,
@@ -96,6 +94,7 @@ router.post("/auth/signin", (req, res) => {
     });
   }
 
+  if(verify(token)){
   dbo.collection(TABLE_USERS).findOne(
     {
       email
@@ -141,6 +140,12 @@ router.post("/auth/signin", (req, res) => {
         });
       }
     });
+  } else {
+    return res.json({
+      error : true,
+      mssg : 'Invalid identity found, blocked!'
+    })
+  }
 });
 
 router.post("/auth/verify", (req, res) => {
@@ -407,8 +412,11 @@ async function verify(token) {
       audience: CLIENT_ID,
   });
   const payload = ticket.getPayload();
-  const userid = payload['sub'];
-  console.log(payload, userid)
+  const aud = payload['aud'];
+  if(aud === CLIENT_ID)
+    return true
+  else
+    return false
 }
 
 module.exports = router;
