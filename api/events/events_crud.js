@@ -47,7 +47,7 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
   const college = decoded.college;
   const channel = decoded.channel;
 
-  const _id = channel.id + "-" + uid;
+  const _id = channel._id + "-" + uid;
   const reach = [];
   const views = [];
   const enrollees = [];
@@ -94,7 +94,7 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
     });
   }
 
-  audience.push(channel.id.trim());
+  audience.push(channel._id.trim());
   audience.push(category);
 
   const query_data = {
@@ -119,7 +119,7 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
     price,
     available_seats,
     audience,
-    channel: decoded.channel.id.trim()
+    channel: decoded.channel._id.trim()
   };
 
   saveFiles(req.files, function(media, err) {
