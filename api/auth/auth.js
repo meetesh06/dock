@@ -316,7 +316,7 @@ router.post("/auth/manager/signin", (req, res) => {
       });
     }
     if (data) {
-      dbo.collection(TABLE_CHANNELS).findOne({ _id : channel_id}, (err, result)=>{
+      dbo.collection(TABLE_CHANNELS).findOne({ _id : data.channel}, (err, result)=>{
         if(result){
           console.log(result);
           if (passwordHash.verify(password, data.password)) {
