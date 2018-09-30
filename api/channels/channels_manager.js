@@ -53,12 +53,12 @@ router.post("/channels/manager/create-post", verifyRequest, (req, res) => {
       mssg: "missing fields"
     });
 
-  const _id = channel.id + "-" + uid;
+  const _id = channel._id + "-" + uid;
   const reach = [];
   const views = [];
   const type = "post";
   const timestamp = new Date();
-  const audience = [channel.id];
+  const audience = [channel._id];
   
   const query_data = {
     _id,
@@ -66,7 +66,7 @@ router.post("/channels/manager/create-post", verifyRequest, (req, res) => {
     views,
     type,
     timestamp,
-    channel: channel.id,
+    channel: channel._id,
     audience,
     message,
     email,
@@ -121,12 +121,12 @@ router.post("/channels/manager/create-image-post", verifyRequest, (req, res) => 
       mssg: "missing fields"
     });
 
-  const _id = channel.id + "-" + uid;
+  const _id = channel._id + "-" + uid;
   const reach = [];
   const views = [];
   const type = "post-image";
   const timestamp = new Date();
-  const audience = [channel.id];
+  const audience = [channel._id];
   
   const query_data = {
     _id,
@@ -134,7 +134,7 @@ router.post("/channels/manager/create-image-post", verifyRequest, (req, res) => 
     views,
     type,
     timestamp,
-    channel: channel.id,
+    channel: channel._id,
     audience,
     message,
     email,
@@ -220,12 +220,12 @@ router.post("/channels/manager/create-poll", verifyRequest, (req, res) => {
       error: true,
       mssg: "Invalid Data"
     });
-  const _id = channel.id + "-" + uid;
+  const _id = channel._id + "-" + uid;
   const reach = [];
   const views = [];
   const type = "poll";
   const timestamp = new Date();
-  const audience = [channel.id];
+  const audience = [channel._id];
   
   const query_data = {
     _id,
@@ -233,7 +233,7 @@ router.post("/channels/manager/create-poll", verifyRequest, (req, res) => {
     views,
     type,
     timestamp,
-    channel: channel.id,
+    channel: channel._id,
     audience,
     message,
     poll_type,
@@ -279,7 +279,7 @@ router.post("/channels/manager/create-poll", verifyRequest, (req, res) => {
 */
 router.post("/channels/manager/get-member-list", verifyRequest, (req, res) => {
   const decoded = req.decoded;
-  const channel = decoded.channel.id;
+  const channel = decoded.channel._id;
   let last_updated = req.body.last_updated;
 
   if ( last_updated === undefined ) return res.json({
@@ -290,7 +290,7 @@ router.post("/channels/manager/get-member-list", verifyRequest, (req, res) => {
   last_updated = new Date(last_updated);
   
   const query_data = {
-    "channel.id": channel,
+    "channel._id": channel,
   };
 
   if(isValidDate(last_updated)) {
