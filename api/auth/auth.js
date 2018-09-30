@@ -73,7 +73,7 @@ router.post("/auth/manager/verify", (req, res) => {
   * Require (verified_email, token_generated_from_google)
   * Return (*CREATE A NEW USER, NEW TOKEN)
 */
-router.post("/auth/signin", (req, res) => {
+router.post("/auth/signin", async (req, res) => {
   if (!req.body) return res.json({
     error: true,
     mssg: "missing fields"
@@ -93,8 +93,8 @@ router.post("/auth/signin", (req, res) => {
       mssg: "invalid email"
     });
   }
-
-  if(verify(token)){
+  const verified = await verify(token);
+  if(verified){
   dbo.collection(TABLE_USERS).findOne(
     {
       email
