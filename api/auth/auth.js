@@ -366,6 +366,36 @@ router.post("/auth/manager/signin", (req, res) => {
   });
 });
 
+/*
+  * API end point to fetch user details
+  * Requires (TOKEN)
+  * Returns (ACKNOWLEDGEMENT, DATA OBJECT - CENSORED) 
+*/
+router.post("/auth/fetch-user", (req, res) => {
+  verifyUserToken(req, (err, decoded) => {
+    if(err) {
+      console.log(err);
+      return res.json({
+        error: true,
+        mssg: "Token Verification failed."
+      });
+    } else {
+      const id = decoded.id;
+      if ( id === undefined ) return res.json({
+        error: true,
+        mssg: "invalid request"
+      });
+
+      dbo.collection(TABLE_USERS).findOne({_id : id}, (err, result) =>{
+        return res.json({
+          error : false,
+          data : result
+        });
+      });
+    }
+  });
+});
+
 /* HELPERS */
 async function verify(token) {
   try{

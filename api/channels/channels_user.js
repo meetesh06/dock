@@ -62,7 +62,7 @@ router.post("/channels/user/follow", verifyRequest, (req, res) => {
 });
 
 /*
-  * API end point to follow a channel, update DB with the userid
+  * API end point to unfollow a channel, update DB with the userid
   * Requires (TOKEN, channel_id)
   * Returns (ACKNOWLEDGEMENT)
 */
