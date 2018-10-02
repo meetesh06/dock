@@ -109,10 +109,10 @@ router.post("/auth/signin", async (req, res) => {
         const token = jwt.sign({
           email: req.body.email,
           college: result.college,
-          name: result.username,
+          name: result.name,
           gender : result.gender,
           mobile : result.mobile,
-          id : (req.body.email + "-" + result.username).replace(/\./g, "$"),
+          id : (req.body.email + "-" + result.name).replace(/\./g, "$"),
           user: true
         },
         APP_SECRET_KEY, {

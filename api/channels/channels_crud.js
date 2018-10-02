@@ -61,11 +61,12 @@ router.post("/channels/get-activity-list", verifyRequestCommon, (req, res) => {
   }
 
   dbo.collection(TABLE_ACTIVITY).find(query_data)
-    .toArray( (err, result) => {
-      if(err) return res.json({
-        error: true,
-        mssg: err
-      });
+    .toArray((err, result) => {
+      if(err) 
+        return res.json({
+          error: true,
+          mssg: err
+        });
       return res.json({
         error: false,
         data: result
