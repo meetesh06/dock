@@ -62,6 +62,42 @@ router.post("/channels/user/follow", verifyRequest, (req, res) => {
 });
 
 /*
+  * API end point to follow a channel, update DB with the userid
+  * Requires (TOKEN, channel_id)
+  * Returns (ACKNOWLEDGEMENT)
+*/
+router.post("/channels/user/unfollow", verifyRequest, (req, res) => {
+  const decoded = req.decoded;
+  const id = decoded.id;
+  const email = decoded.email;
+  const channel_id = req.body.channel_id;
+
+  dbo.collection(TABLE_CHANNELS).findOne({ _id : channel_id}, (err, result)=>{
+    if(result){
+      dbo.collection(TABLE_CHANNELS).update({ _id : channel_id }, { $pull: { followers : id }  }, (err, result) => {
+        console.log(err);
+      });
+      dbo.collection(TABLE_USERS).update({ email }, { $pull: { followed_channels : channel_id }  }, (err, result) => {
+        if(err) 
+          return res.json({
+            error: true,
+            mssg : err
+          });
+        return res.json({
+          error : false,
+          mssg : "success"
+        });
+      });
+    } else {
+      return res.json({
+        error: true,
+        mssg: err
+      });
+    }
+  });
+});
+
+/*
   * API end point to fetch details for a channel
   * Requires (TOKEN, channel_id)
   * Returns (ACKNOWLEDGEMENT, CHANNEL DATA OBJECT - CENSORED) 
