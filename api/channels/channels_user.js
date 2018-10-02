@@ -49,7 +49,7 @@ router.post("/channels/user/follow", verifyRequest, (req, res) => {
           });
         return res.json({
           error : false,
-          mssg : "done"
+          mssg : "success"
         });
       });
     } else {
