@@ -68,7 +68,7 @@ router.post("/channels/user/follow", verifyRequest, (req, res) => {
 */
 router.post("/channels/user/fetch-channel", verifyRequest, (req, res) => {
   const decoded = req.decoded;
-  const email = decoded.email;
+  const id = decoded.id;
   let channel_id = req.body.channel_id;
 
   if ( channel_id === undefined ) return res.json({
@@ -77,7 +77,7 @@ router.post("/channels/user/fetch-channel", verifyRequest, (req, res) => {
   });
   
   dbo.collection(TABLE_CHANNELS).findOne({_id : channel_id}, (err, result) =>{
-    result["followed"] = result.followers.includes(email);
+    result["followed"] = result.followers.includes(id);
     result.followers = result.followers.length;
     return res.json({
       error : false,
