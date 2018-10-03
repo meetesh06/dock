@@ -112,7 +112,7 @@ router.post("/channels/user/fetch-channel", verifyRequest, (req, res) => {
     mssg: "invalid request"
   });
   
-  dbo.collection(TABLE_ACTIVITY).findOne({_id : channel_id}, (err, result) =>{
+  dbo.collection(TABLE_CHANNELS).findOne({_id : channel_id}, (err, result) =>{
     result["followed"] = result.followers.includes(id);
     result.followers = result.followers.length;
     if(err)
