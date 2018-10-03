@@ -152,7 +152,7 @@ router.post("/channels/user/fetch-poll-stats", verifyRequest, (req, res) => {
   * Requires (TOKEN, poll_id, option)
   * Returns (ACKNOWLDGEMENT)
 */
-router.post("/channels/user/answer-poll", verifyUserToken, (req, res) => {
+router.post("/channels/user/answer-poll", verifyRequest, (req, res) => {
   const decoded = req.decoded;
   const id = decoded.id;
   let _id = req.body._id;
