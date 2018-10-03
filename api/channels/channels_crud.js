@@ -67,6 +67,13 @@ router.post("/channels/get-activity-list", verifyRequestCommon, (req, res) => {
           error: true,
           mssg: err
         });
+      for(var i=0; i< result.length; i++){
+        if(result[i].type === "poll"){
+          let tup = result[i];
+          tup.options = Object.keys(tup.options);
+          result[i] = tup;
+        }
+      }
       return res.json({
         error: false,
         data: result
