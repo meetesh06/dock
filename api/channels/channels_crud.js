@@ -36,6 +36,7 @@ const verifyRequestCommon = function (req, res, next) {
 router.post("/channels/get-activity-list", verifyRequestCommon, (req, res) => {
   const decoded = req.decoded;
   let channel_id = req.body.channel_id;
+  let user = decoded.id;
 
   if(decoded.manager === true) channel_id = decoded.channel._id;
   if( channel_id === undefined ) return res.json({
@@ -67,10 +68,18 @@ router.post("/channels/get-activity-list", verifyRequestCommon, (req, res) => {
           error: true,
           mssg: err
         });
-      console.log(result);
+      
       for(var i=0; i< result.length; i++){
         if(result[i].type === "poll"){
           let tup = result[i];
+          let answer = false;
+          Object.entries(tup.options).forEach(([key, value]) => {
+            if(value.includes(user)){
+              answer = key;
+              return;
+            }
+          });
+          tup["answered"] = answer;
           tup.options = Object.keys(tup.options);
           result[i] = tup;
         }
