@@ -3,7 +3,7 @@ const express = require("express");
 const actions = require("../../actions/actions");
 const db = require("../../db");
 const constants = require("../../constants");
-
+const TABLE_ACTIVITY = constants.TABLE_ACTIVITY;
 const verifyUserToken = actions.verifyUserToken;
 const TABLE_USERS = constants.TABLE_USERS;
 const TABLE_CHANNELS = constants.TABLE_CHANNELS;
@@ -38,10 +38,10 @@ router.post("/channels/user/follow", verifyRequest, (req, res) => {
 
   dbo.collection(TABLE_CHANNELS).findOne({ _id : channel_id}, (err, result)=>{
     if(result){
-      dbo.collection(TABLE_CHANNELS).update({ _id : channel_id }, { $addToSet: { followers : id }  }, (err, result) => {
+      dbo.collection(TABLE_CHANNELS).update({ _id : channel_id }, { $addToSet: { followers : id }  }, (err, res1) => {
         console.log(err);
       });
-      dbo.collection(TABLE_USERS).update({ email }, { $addToSet: { followed_channels : channel_id }  }, (err, result) => {
+      dbo.collection(TABLE_USERS).update({ email }, { $addToSet: { followed_channels : channel_id }  }, (err, res2) => {
         if(err) 
           return res.json({
             error: true,
@@ -112,12 +112,68 @@ router.post("/channels/user/fetch-channel", verifyRequest, (req, res) => {
     mssg: "invalid request"
   });
   
-  dbo.collection(TABLE_CHANNELS).findOne({_id : channel_id}, (err, result) =>{
+  dbo.collection(TABLE_ACTIVITY).findOne({_id : channel_id}, (err, result) =>{
     result["followed"] = result.followers.includes(id);
     result.followers = result.followers.length;
+    if(err)
+      return res.json({
+        error : true,
+        mssg : err
+      });
     return res.json({
       error : false,
       data : result
+    });
+  });
+});
+
+/*
+  * API end point to fetch details for a channel
+  * Requires (TOKEN, channel_id)
+  * Returns (ACKNOWLEDGEMENT, CHANNEL DATA OBJECT - CENSORED) 
+*/
+router.post("/channels/user/fetch-poll-stats", verifyRequest, (req, res) => {
+  const _id = req.body._id;
+  dbo.collection(TABLE_ACTIVITY).findOne({_id}, (err, result) =>{
+    if(err)
+      return res.json({
+        error : true,
+        mssg : err
+      });
+    return res.json({
+      error : false,
+      data : result
+    });
+  });
+});
+
+/*
+  * API end point to answer poll
+  * Requires (TOKEN, poll_id, option)
+  * Returns (ACKNOWLDGEMENT)
+*/
+router.post("/channels/user/answer-poll", verifyUserToken, (req, res) => {
+  const decoded = req.decoded;
+  const id = decoded.id;
+  let _id = req.body._id;
+  let option = req.body.option;
+
+  if( _id === undefined || option === undefined ) 
+    return res.json({
+      error: true,
+      mssg: "Invalid Request"
+    });
+
+  let dope = "options."+option;
+  dbo.collection(TABLE_ACTIVITY).update({ _id }, { $addToSet: { [dope] : id }  }, (err, result) => {
+    if(err) return res.json({
+      error: true,
+      mssg: err
+    });
+    console.log(result);
+    return res.json({
+      error: false,
+      mssg : "success"
     });
   });
 });

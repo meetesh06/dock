@@ -81,7 +81,8 @@ router.post("/channels/get-activity-list", verifyRequestCommon, (req, res) => {
             }
           });
           tup["answered"] = answer;
-          tup.options = Object.keys(tup.options);
+          if(!answer)
+            tup.options = Object.keys(tup.options);
           result[i] = tup;
         }
       }
@@ -91,38 +92,6 @@ router.post("/channels/get-activity-list", verifyRequestCommon, (req, res) => {
         data: result
       });
     });
-});
-
-/*
-  * API end point to answer poll
-  * Requires (TOKEN, poll_id, option)
-  * Returns (ACKNOWLDGEMENT)
-*/
-router.post("/channels/answer-poll", verifyRequestCommon, (req, res) => {
-  const decoded = req.decoded;
-  const email = decoded.email;
-
-  let _id = req.body._id;
-  let option = req.body.option;
-
-  if( _id === undefined || option === undefined ) 
-    return res.json({
-      error: true,
-      mssg: "Invalid Request"
-    });
-
-  let dope = "options."+option;
-  dbo.collection(TABLE_ACTIVITY).update({ _id }, { $addToSet: { [dope] : email }  }, (err, result) => {
-    if(err) return res.json({
-      error: true,
-      mssg: err
-    });
-    console.log(result);
-    return res.json({
-      error: false,
-      mssg : "success"
-    });
-  });
 });
 
 module.exports = router;
