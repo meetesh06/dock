@@ -69,6 +69,7 @@ router.post("/channels/get-activity-list", verifyRequestCommon, (req, res) => {
           mssg: err
         });
       
+      /* OPTIMIZE */
       for(var i=0; i< result.length; i++){
         if(result[i].type === "poll"){
           let tup = result[i];
@@ -84,7 +85,7 @@ router.post("/channels/get-activity-list", verifyRequestCommon, (req, res) => {
           result[i] = tup;
         }
       }
-      console.log(result);
+
       return res.json({
         error: false,
         data: result
