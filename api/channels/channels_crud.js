@@ -75,6 +75,7 @@ router.post("/channels/get-activity-list", verifyRequestCommon, (req, res) => {
           result[i] = tup;
         }
       }
+      console.log(result);
       return res.json({
         error: false,
         data: result
