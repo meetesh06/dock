@@ -170,10 +170,16 @@ router.post("/channels/user/answer-poll", verifyRequest, (req, res) => {
       error: true,
       mssg: err
     });
-    console.log(result);
-    return res.json({
-      error: false,
-      mssg : "success"
+    dbo.collection(TABLE_ACTIVITY).findOne({_id}, (err, result) =>{
+      if(err)
+        return res.json({
+          error : true,
+          mssg : err
+        });
+      return res.json({
+        error : false,
+        data : result
+      });
     });
   });
 });
