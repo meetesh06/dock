@@ -127,6 +127,34 @@ router.post("/channels/user/fetch-channel", verifyRequest, (req, res) => {
   });
 });
 
+
+/*
+  * API end point to fetch users for a channel
+  * Requires (TOKEN, channel_id)
+  * Returns (ACKNOWLEDGEMENT, CHANNEL DATA OBJECT - CENSORED) 
+*/
+router.post("/channels/user/fetch-channel-users", verifyRequest, (req, res) => {
+  let channel_id = req.body.channel_id;
+
+  if ( channel_id === undefined ) return res.json({
+    error: true,
+    mssg: "invalid request"
+  });
+  
+  dbo.collection(TABLE_CHANNELS).findOne({_id : channel_id}, (err, result) =>{
+    const followers = result.followers;
+    if(err)
+      return res.json({
+        error : true,
+        mssg : err
+      });
+    return res.json({
+      error : false,
+      data : followers
+    });
+  });
+});
+
 /*
   * API end point to fetch details for a channel
   * Requires (TOKEN, channel_id)
