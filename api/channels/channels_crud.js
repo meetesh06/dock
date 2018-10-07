@@ -94,4 +94,55 @@ router.post("/channels/get-activity-list", verifyRequestCommon, (req, res) => {
     });
 });
 
+router.post("/channels/fetch-activities", verifyRequestCommon, (req, res) => {
+  const decoded = req.decoded;
+  let data = req.body.data;
+  let user = decoded.id;
+  var activities = {};
+  Object.entries(data).forEach(([key, value]) => {
+    let last_updated = value;
+    if (last_updated === undefined) return ;
+  
+    last_updated = new Date(last_updated);
+    const query_data = {
+      channel : key,
+    };
+
+    if(isValidDate(last_updated)) {
+      query_data["timestamp"] = {
+        $gt: last_updated
+      };
+    }
+
+    dbo.collection(TABLE_ACTIVITY).find(query_data)
+      .toArray((err, result) => {
+        if(err) return;
+
+        /* OPTIMIZE */
+        for(var i=0; i< result.length; i++){
+          if(result[i].type === "poll"){
+            let tup = result[i];
+            let answer = false;
+            Object.entries(tup.options).forEach(([key, value]) => {
+              if(value.includes(user)){
+                answer = key;
+                return;
+              }
+            });
+            tup["answered"] = answer;
+            if(!answer)
+              tup.options = Object.keys(tup.options);
+            result[i] = tup;
+          }
+        }
+        activities[key] = result;
+      });
+  });
+
+  res.json({
+    error : false,
+    data : activities
+  });
+});
+
 module.exports = router;
