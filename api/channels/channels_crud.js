@@ -148,16 +148,10 @@ router.post("/channels/fetch-activities", verifyRequestCommon, (req, res) => {
         }
       });
       activities[key] = result;
+      console.log(activities);
     });
 
     console.log(index, len);
-    if(index === len){
-      console.log("Sending", activities);
-      res.json({
-        error : false,
-        data : activities
-      });
-    }
   });
 });
 
