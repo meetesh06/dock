@@ -136,6 +136,7 @@ router.post("/channels/fetch-activities", verifyRequestCommon, (req, res) => {
           }
         }
         activities[key] = result;
+        console.log("Done", activities);
       });
   });
 
@@ -143,6 +144,7 @@ router.post("/channels/fetch-activities", verifyRequestCommon, (req, res) => {
     error : false,
     data : activities
   });
+  console.log("Done", activities);
 });
 
 module.exports = router;
