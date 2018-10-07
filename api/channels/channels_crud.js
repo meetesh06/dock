@@ -87,13 +87,13 @@ router.post("/channels/get-activity-list", verifyRequestCommon, (req, res) => {
         }
 
         if(index === array.length - 1){
+          console.log("SENDING", channel_id);
           return res.json({
             error: false,
             data: result
           });
         }
       });
-
     });
 });
 
