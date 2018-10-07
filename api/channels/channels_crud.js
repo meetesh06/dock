@@ -102,7 +102,10 @@ router.post("/channels/fetch-activities", verifyRequestCommon, (req, res) => {
   let data = req.body.data;
   let user = decoded.id;
   var activities = {};
+  var len = Object.keys(data).length;
+  var index = 0;
   Object.entries(data).forEach(([key, value]) => {
+    index += 1;
     let last_updated = value;
     if (last_updated === undefined) return ;
   
@@ -147,13 +150,14 @@ router.post("/channels/fetch-activities", verifyRequestCommon, (req, res) => {
         });
         activities[key] = result;
       });
-    console.log("DONE", activities);
+    if(index === len - 1){
+      console.log("Sending", activities);
+      res.json({
+        error : false,
+        data : activities
+      });
+    }
   });
-  res.json({
-    error : false,
-    data : activities
-  });
-  console.log("SENT", activities);
 });
 
 module.exports = router;
