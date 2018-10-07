@@ -120,38 +120,38 @@ router.post("/channels/fetch-activities", verifyRequestCommon, (req, res) => {
       };
     }
 
-    dbo.collection(TABLE_ACTIVITY).find(query_data)
-      .toArray((err, result) => {
-        if(err) return;
+    dbo.collection(TABLE_ACTIVITY).find(query_data).toArray((err, result) => {
+      if(err) return;
 
-        /* OPTIMIZE */
-        result.forEach((item, index, array) => {
-          if(item.type === "poll"){
-            let tup = item;
-            let answer = false;
-            Object.entries(tup.options).forEach(([key, value]) => {
-              if(value.includes(user)){
-                answer = key;
-                return;
-              }
-            });
-            tup["answered"] = answer;
-            if(!answer)
-              tup.options = Object.keys(tup.options);
-            item = tup;
-          }
+      /* OPTIMIZE */
+      result.forEach((item, index, array) => {
+        if(item.type === "poll"){
+          let tup = item;
+          let answer = false;
+          Object.entries(tup.options).forEach(([key, value]) => {
+            if(value.includes(user)){
+              answer = key;
+              return;
+            }
+          });
+          tup["answered"] = answer;
+          if(!answer)
+            tup.options = Object.keys(tup.options);
+          item = tup;
+        }
 
-          if(index === array.length - 1){
-            return res.json({
-              error: false,
-              data: result
-            });
-          }
-        });
-        activities[key] = result;
+        if(index === array.length - 1){
+          return res.json({
+            error: false,
+            data: result
+          });
+        }
       });
+      activities[key] = result;
+    });
+
     console.log(index, len);
-    if(index === len - 1){
+    if(index === len){
       console.log("Sending", activities);
       res.json({
         error : false,
