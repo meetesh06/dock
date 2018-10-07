@@ -70,9 +70,9 @@ router.post("/channels/get-activity-list", verifyRequestCommon, (req, res) => {
         });
       
       /* OPTIMIZE */
-      for(var i=0; i< result.length; i++){
-        if(result[i].type === "poll"){
-          let tup = result[i];
+      result.forEach((item, index, array) => {
+        if(item.type === "poll"){
+          let tup = item;
           let answer = false;
           Object.entries(tup.options).forEach(([key, value]) => {
             if(value.includes(user)){
@@ -83,14 +83,17 @@ router.post("/channels/get-activity-list", verifyRequestCommon, (req, res) => {
           tup["answered"] = answer;
           if(!answer)
             tup.options = Object.keys(tup.options);
-          result[i] = tup;
+          item = tup;
         }
-      }
 
-      return res.json({
-        error: false,
-        data: result
+        if(index === array.length - 1){
+          return res.json({
+            error: false,
+            data: result
+          });
+        }
       });
+
     });
 });
 
@@ -119,9 +122,9 @@ router.post("/channels/fetch-activities", verifyRequestCommon, (req, res) => {
         if(err) return;
 
         /* OPTIMIZE */
-        for(var i=0; i< result.length; i++){
-          if(result[i].type === "poll"){
-            let tup = result[i];
+        result.forEach((item, index, array) => {
+          if(item.type === "poll"){
+            let tup = item;
             let answer = false;
             Object.entries(tup.options).forEach(([key, value]) => {
               if(value.includes(user)){
@@ -132,19 +135,25 @@ router.post("/channels/fetch-activities", verifyRequestCommon, (req, res) => {
             tup["answered"] = answer;
             if(!answer)
               tup.options = Object.keys(tup.options);
-            result[i] = tup;
+            item = tup;
           }
-        }
-        activities[key] = result;
-        console.log("Done", activities);
-      });
-  });
 
+          if(index === array.length - 1){
+            return res.json({
+              error: false,
+              data: result
+            });
+          }
+        });
+        activities[key] = result;
+      });
+    console.log("DONE", activities);
+  });
   res.json({
     error : false,
     data : activities
   });
-  console.log("Done", activities);
+  console.log("SENT", activities);
 });
 
 module.exports = router;
