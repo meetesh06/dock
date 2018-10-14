@@ -169,8 +169,9 @@ router.post("/channels/user/fetch-college-channels", verifyRequest, (req, res) =
     output = []
     for(var i=0; i<result.length; i++){
       e = result[i];
-      e.followed = e.followers.includes(id)
-      e.followers = e.followers.length
+      e.followed = e.followers.includes(id);
+      e.followers = e.followers.length;
+      output.push(e)
     }
 
     res.json({
