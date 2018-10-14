@@ -36,7 +36,7 @@ const verifyRequest = function (req, res, next) {
 router.post("/events/user/get-event-list", verifyRequest, (req, res) => {
   const decoded = req.decoded;
   const college = decoded.college;
-  const email = decoded.email;
+  const id = decoded.id;
 
   let last_updated = req.body.last_updated;
 
@@ -56,7 +56,7 @@ router.post("/events/user/get-event-list", verifyRequest, (req, res) => {
         college: 1,
         reach: { $size: "$reach" },
         views: { $size: "$views" },
-        enrollees: { $size: "$enrollees" },
+        enrollees: 1,
         timestamp: 1,
         title: 1,
         channel : 1, 
@@ -95,10 +95,17 @@ router.post("/events/user/get-event-list", verifyRequest, (req, res) => {
       error: true,
       mssg: err
     });
-
+    output = []
+    for(var i=0; i< result.length; i++){
+      e = result[i]
+      e.enrolled = e.enrollees.includes(id);
+      e.enrollees = e.enrollees.length
+      output.push(e);
+    }
+    
     res.json({
       error: false,
-      data: result
+      data: output
     });
 
     const event_list = result.map(a => a._id);
@@ -106,7 +113,7 @@ router.post("/events/user/get-event-list", verifyRequest, (req, res) => {
 
     dbo.collection(TABLE_EVENTS).updateMany(
       { _id: { $in: event_list } },
-      { $addToSet: { "reach" : { email, timestamp: new Date() } } }
+      { $addToSet: { "reach" : { id, timestamp: new Date() } } }
     );
   });
 });
@@ -240,7 +247,7 @@ router.post("/events/user/purchase", verifyRequest, (req, res) => {
 */
 router.post("/events/user/get-channel-event-list", verifyRequest, (req, res) => {
   const decoded = req.decoded;
-  const email = decoded.email;
+  const id = decoded.id;
 
   let channel_id = req.body.channel_id;
 
@@ -299,7 +306,7 @@ router.post("/events/user/get-channel-event-list", verifyRequest, (req, res) => 
     if(event_list.length === 0) return;
     dbo.collection(TABLE_EVENTS).updateMany(
       { _id: { $in: event_list } },
-      { $addToSet: { "reach" : { email, timestamp: new Date() } } }
+      { $addToSet: { "reach" : { id, timestamp: new Date() } } }
     );
   });
 });
