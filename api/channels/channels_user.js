@@ -143,11 +143,12 @@ router.post("/channels/user/fetch-college-channels", verifyRequest, (req, res) =
       $project: {
         _id: 1,
         name: 1,
-        followers: { $size: "$followers" },
+        followers: 1,
         media : 1,
         description : 1,
         category : 1,
-        creator : 1
+        creator : 1,
+        priority : 1
       }
     };
   
@@ -164,9 +165,17 @@ router.post("/channels/user/fetch-college-channels", verifyRequest, (req, res) =
       error: true,
       mssg: err
     });
+
+    output = []
+    for(var i=0; i<result.length; i++){
+      e = result[i];
+      e.followed = e.followers.includes(id)
+      e.followers = e.followers.length
+    }
+
     res.json({
       error : false,
-      data : result
+      data : output
     })
   });
 });
