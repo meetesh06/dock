@@ -37,7 +37,6 @@ router.post("/channels/get-activity-list", verifyRequestCommon, (req, res) => {
   const decoded = req.decoded;
   let channel_id = req.body.channel_id;
   let user = decoded.id;
-  console.log("SENDING", channel_id);
   if(decoded.manager === true) channel_id = decoded.channel._id;
   if( channel_id === undefined ) return res.json({
     error: true,
