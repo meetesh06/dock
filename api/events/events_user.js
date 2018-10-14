@@ -102,7 +102,7 @@ router.post("/events/user/get-event-list", verifyRequest, (req, res) => {
       e.enrollees = e.enrollees.length
       output.push(e);
     }
-    
+
     res.json({
       error: false,
       data: output

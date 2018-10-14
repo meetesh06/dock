@@ -128,6 +128,49 @@ router.post("/channels/user/fetch-channel", verifyRequest, (req, res) => {
   });
 });
 
+router.post("/channels/user/fetch-college-channels", verifyRequest, (req, res) => {
+  const decoded = req.decoded;
+  const id = decoded.id;
+  let college = req.body.college;
+
+  if ( college === undefined ) return res.json({
+    error: true,
+    mssg: "Missing Params"
+  });
+
+  const query_data =
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        followers: { $size: "$followers" },
+        media : 1,
+        description : 1,
+        category : 1,
+        creator : 1
+      }
+    };
+  
+  const match = { 
+    $match: {
+      $and: [ 
+        { creator : college }
+      ]
+    }
+  };
+
+  dbo.collection(TABLE_CHANNELS).aggregate([query_data, match]).toArray( (err, result) => {
+    if(err) return res.json({
+      error: true,
+      mssg: err
+    });
+    res.json({
+      error : false,
+      data : result
+    })
+  });
+});
+
 
 /*
   * API end point to fetch users for a channel
