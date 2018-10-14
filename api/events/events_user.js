@@ -118,13 +118,13 @@ router.post("/events/user/get-event-list", verifyRequest, (req, res) => {
 */
 router.post("/events/user/fetch-event-data", verifyRequest, (req, res) => {
   const decoded = req.decoded;
-  const email = decoded.email;
+  const id = decoded.id;
 
   let _id = req.body._id;
 
   if ( _id === undefined ) return res.json({
     error: true,
-    mssg: "invalid request"
+    mssg: "missing fields"
   });
 
   const query_data =
@@ -134,7 +134,7 @@ router.post("/events/user/fetch-event-data", verifyRequest, (req, res) => {
         email: 1,
         reach: { $size: "$reach" },
         views: { $size: "$views" },
-        enrollees: { $size: "$enrollees" },
+        enrollees: 1,
         title: 1,
         channel : 1, 
         description: 1,
@@ -159,20 +159,29 @@ router.post("/events/user/fetch-event-data", verifyRequest, (req, res) => {
       ]
     }
   };
+
+  dbo.collection(TABLE_EVENTS).update(
+    { _id },
+    { $addToSet: { "views" : { id, timestamp: new Date().getUTCMonth() + 1 } } }
+  );
   
   dbo.collection(TABLE_EVENTS).aggregate([query_data, match]).toArray( (err, result) => {
     if(err) return res.json({
       error: true,
       mssg: err
     });
-    res.json({
-      error: false,
-      data: result
-    });
-    dbo.collection(TABLE_EVENTS).update(
-      { _id },
-      { $addToSet: { "views" : { email, timestamp: new Date().getUTCMonth() + 1 } } }
-    );
+    if(result.length > 0){
+      e = result[0]
+      console.log(id)
+      e.enrolled = e.enrollees.includes(id);
+      e.enrollees = e.enrollees.length
+      output = [];
+      output.push(e);
+      res.json({
+        error: false,
+        data: output
+      });
+    }
   });
 });
 
