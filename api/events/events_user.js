@@ -172,7 +172,6 @@ router.post("/events/user/fetch-event-data", verifyRequest, (req, res) => {
     });
     if(result.length > 0){
       e = result[0]
-      console.log(id)
       e.enrolled = e.enrollees.includes(id);
       e.enrollees = e.enrollees.length
       output = [];
