@@ -7,8 +7,10 @@ const verifyUserToken = actions.verifyUserToken;
 const isValidDate = actions.isValidDate;
 const TABLE_EVENTS = constants.TABLE_EVENTS;
 const TABLE_USERS = constants.TABLE_USERS;
+const TABLE_PAYMENTS = constants.TABLE_PAYMENTS;
 const dbo = db.getDb();
 const router = express.Router();
+const UID = actions.UID;
 
 /* HELPER */
 const verifyRequest = function (req, res, next) {
@@ -179,34 +181,48 @@ router.post("/events/user/fetch-event-data", verifyRequest, (req, res) => {
   * Requires (TOKEN, event_id)
   * Returns (ACKNOWLEDGEMENT)
 */
-router.post("/events/user/enroll", verifyRequest, (req, res) => {
+router.post("/events/user/purchase", verifyRequest, (req, res) => {
   const decoded = req.decoded;
   const id = decoded.id;
-  const email = decoded.email;
-
   const event_id = req.body._id;
 
-  dbo.collection(TABLE_EVENTS).update({ _id : event_id}, { $addToSet: { enrollees : id }  }, (err, result)=>{
-    if(result){
-      dbo.collection(TABLE_USERS).update({ email }, { $addToSet: { events : event_id }  }, (err, result1) => {
-        if(err)
+  if(event_id === undefined) {
+    return res.json({
+      error : true,
+      mssg : 'Missing Fields'
+    });
+  }
+
+  purchase_id = UID(32)
+
+  dbo.collection(TABLE_PAYMENTS).findOne({event_id, user_id : id}, (err, result) =>{
+    if(err) return;
+    if(result) return;
+
+    dbo.collection(TABLE_PAYMENTS).insertOne({ _id : purchase_id, user_id : id, event_id, timestamp : new Date()}, (err)=>{
+      if(err) return;
+      dbo.collection(TABLE_EVENTS).update({ _id : event_id}, { $addToSet: { enrollees : id }  }, (err, result)=>{
+        if(result){
+          dbo.collection(TABLE_USERS).update({ _id : id }, { $addToSet: { events : event_id }  }, (err, result1) => {
+            if(err)
+              return res.json({
+                error: true,
+                mssg : err
+              });
+            return res.json({
+              error : false,
+              data : { _id : purchase_id, user_id : id, event_id, timestamp : new Date()}
+            });
+          });
+        } else {
           return res.json({
             error: true,
-            mssg : err
+            mssg: err
           });
-        console.log(result1);
-        return res.json({
-          error : false,
-          mssg : "sucess"
-        });
+        }
       });
-    } else {
-      return res.json({
-        error: true,
-        mssg: err
-      });
-    }
-  });
+    });
+    })
 });
 
 /*

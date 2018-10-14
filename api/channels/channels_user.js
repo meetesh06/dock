@@ -115,6 +115,7 @@ router.post("/channels/user/fetch-channel", verifyRequest, (req, res) => {
   dbo.collection(TABLE_CHANNELS).findOne({_id : channel_id}, (err, result) =>{
     result["followed"] = result.followers.includes(id);
     result.followers = result.followers.length;
+    result.users = result.followers;
     if(err)
       return res.json({
         error : true,

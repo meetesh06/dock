@@ -4,6 +4,7 @@ module.exports = Object.freeze({
   TABLE_USERS : "users",
   TABLE_POSTS : "posts",
   TABLE_POLLS : "polls",
+  TABLE_PAYMENTS : "payments",
   TABLE_CHANNELS : "channels",
   TABLE_COLLEGES : "colleges",
   TABLE_ACTIVITY : "activities",

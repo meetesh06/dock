@@ -29,7 +29,7 @@ const verifyRequestCommon = function (req, res, next) {
 };
 
 /*
-  * API end point for getting ativity list
+  * API end point for getting activity list
   * Requires (TOKEN, channel_id, last_updated)
   * Returns (activity_list_based_on_last_update)
 */
@@ -95,5 +95,74 @@ router.post("/channels/get-activity-list", verifyRequestCommon, (req, res) => {
       });
     });
 });
+
+/*
+  * API end point for fetching activity list
+  * Requires (TOKEN, Channels_List {channel_id : last_updated})
+  * Returns ({channel_id : List})
+*/
+router.post("/channels/fetch-activity-list", verifyRequestCommon, (req, res) => {
+  const decoded = req.decoded;
+  let user = decoded.id;
+  let channels = Object.keys(req.body.channels_list);
+  let length = channels.length;
+  
+  if(length > 0){
+    var i = 0;
+    fetch_activity(channels[i], req.body.channels_list[channels[i]], user, (response)=>{
+      if(response.error) return res.json(response);
+      i += 1;
+      
+    })
+  } else {
+    res.json({
+      error : true,
+      mssg : 'invalid request'
+    });
+  }
+});
+
+function fetch_activity(channel_id, last_updated, user, callback){
+  if(last_updated === undefined ) callback({error : true, mssg : 'invalid request'});
+  
+  last_updated = new Date(last_updated);
+  const query_data = {
+    channel : channel_id,
+  };
+
+  if(isValidDate(last_updated)) {
+    query_data["timestamp"] = {
+      $gt: last_updated
+    };
+  }
+
+  dbo.collection(TABLE_ACTIVITY).find(query_data)
+    .toArray((err, result) => {
+      if(err) 
+      callback({ error : true, mssg : err });
+    
+      /* OPTIMIZE */
+      result.forEach((item, index, array) => {
+        if(item.type === "poll"){
+          let tup = item;
+          let answer = false;
+          Object.entries(tup.options).forEach(([key, value]) => {
+            if(value.includes(user)){
+              answer = key;
+              return;
+            }
+          });
+          tup["answered"] = answer;
+          if(!answer)
+            tup.options = Object.keys(tup.options);
+          item = tup;
+        }
+
+        if(index === array.length - 1){
+          callback({error: false, data: result});
+        }
+      });
+    });
+}
 
 module.exports = router;

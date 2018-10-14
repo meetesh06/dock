@@ -45,7 +45,7 @@ router.post("/channels/manager/create-post", verifyRequest, (req, res) => {
   const email = decoded.email;
   const name = decoded.name;
   const channel = decoded.channel;
-  console.log(req.body);
+
   const message = req.body.message;
   if ( message === undefined )
     return res.json({
