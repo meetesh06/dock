@@ -60,6 +60,7 @@ router.post("/events/user/get-event-list", verifyRequest, (req, res) => {
         timestamp: 1,
         title: 1,
         channel : 1, 
+        channel_name : 1, 
         description: 1,
         location: 1,
         category: 1,
