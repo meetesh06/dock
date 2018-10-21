@@ -38,10 +38,10 @@ router.post("/channels/user/follow", verifyRequest, (req, res) => {
 
   dbo.collection(TABLE_CHANNELS).findOne({ _id : channel_id}, (err, result)=>{
     if(result){
-      dbo.collection(TABLE_CHANNELS).update({ _id : channel_id }, { $addToSet: { followers : id }  }, (err, res1) => {
+      dbo.collection(TABLE_CHANNELS).update({ _id : channel_id }, { $addToSet: { followers : id }  }, (err) => {
         console.log(err);
       });
-      dbo.collection(TABLE_USERS).update({ email }, { $addToSet: { followed_channels : channel_id }  }, (err, res2) => {
+      dbo.collection(TABLE_USERS).update({ email }, { $addToSet: { followed_channels : channel_id }  }, (err) => {
         if(err) 
           return res.json({
             error: true,
@@ -74,10 +74,10 @@ router.post("/channels/user/unfollow", verifyRequest, (req, res) => {
 
   dbo.collection(TABLE_CHANNELS).findOne({ _id : channel_id}, (err, result)=>{
     if(result){
-      dbo.collection(TABLE_CHANNELS).update({ _id : channel_id }, { $pull: { followers : id }  }, (err, result) => {
+      dbo.collection(TABLE_CHANNELS).update({ _id : channel_id }, { $pull: { followers : id }  }, (err) => {
         console.log(err);
       });
-      dbo.collection(TABLE_USERS).update({ email }, { $pull: { followed_channels : channel_id }  }, (err, result) => {
+      dbo.collection(TABLE_USERS).update({ email }, { $pull: { followed_channels : channel_id }  }, (err) => {
         if(err) 
           return res.json({
             error: true,
@@ -154,7 +154,7 @@ router.post("/channels/user/fetch-college-channels", verifyRequest, (req, res) =
   
   const match = { 
     $match: {
-      $and: [ 
+      $and: [
         { creator : college }
       ]
     }
@@ -166,18 +166,18 @@ router.post("/channels/user/fetch-college-channels", verifyRequest, (req, res) =
       mssg: err
     });
 
-    output = []
+    let output = [];
     for(var i=0; i<result.length; i++){
-      e = result[i];
+      let e = result[i];
       e.followed = e.followers.includes(id);
       e.followers = e.followers.length;
-      output.push(e)
+      output.push(e);
     }
 
     res.json({
       error : false,
       data : output
-    })
+    });
   });
 });
 
@@ -247,7 +247,7 @@ router.post("/channels/user/answer-poll", verifyRequest, (req, res) => {
     });
 
   let dope = "options."+option;
-  dbo.collection(TABLE_ACTIVITY).update({ _id }, { $addToSet: { [dope] : id }  }, (err, result) => {
+  dbo.collection(TABLE_ACTIVITY).update({ _id }, { $addToSet: { [dope] : id }  }, (err) => {
     if(err) return res.json({
       error: true,
       mssg: err

@@ -44,55 +44,9 @@ router.post("/channels/get-activity-list", verifyRequestCommon, (req, res) => {
   });
 
   let last_updated = req.body.last_updated;
-  if ( last_updated === undefined ) return res.json({
-    error: true,
-    mssg: "invalid request"
+  fetch_activity(channel_id, last_updated, user, 0, (result)=>{
+    return res.json(result);
   });
-  
-  last_updated = new Date(last_updated);
-  const query_data = {
-    channel : channel_id,
-  };
-
-  if(isValidDate(last_updated)) {
-    query_data["timestamp"] = {
-      $gt: last_updated
-    };
-  }
-
-  dbo.collection(TABLE_ACTIVITY).find(query_data)
-    .toArray((err, result) => {
-      if(err) 
-        return res.json({
-          error: true,
-          mssg: err
-        });
-      
-      /* OPTIMIZE */
-      result.forEach((item, index, array) => {
-        if(item.type === "poll"){
-          let tup = item;
-          let answer = false;
-          Object.entries(tup.options).forEach(([key, value]) => {
-            if(value.includes(user)){
-              answer = key;
-              return;
-            }
-          });
-          tup["answered"] = answer;
-          if(!answer)
-            tup.options = Object.keys(tup.options);
-          item = tup;
-        }
-
-        if(index === array.length - 1){
-          return res.json({
-            error: false,
-            data: result
-          });
-        }
-      });
-    });
 });
 
 /*
@@ -103,26 +57,36 @@ router.post("/channels/get-activity-list", verifyRequestCommon, (req, res) => {
 router.post("/channels/fetch-activity-list", verifyRequestCommon, (req, res) => {
   const decoded = req.decoded;
   let user = decoded.id;
-  let channels = Object.keys(req.body.channels_list);
-  let length = channels.length;
+  if(req.body.channels_list === undefined){
+    return res.json({error : true, mssg : "invalid request"});
+  }
+
+  let channels = JSON.parse(req.body.channels_list);
+  let keys = Object.keys(channels);
   
+  let length = keys.length;
+  let result = {};
+
   if(length > 0){
-    var i = 0;
-    fetch_activity(channels[i], req.body.channels_list[channels[i]], user, (response)=>{
-      if(response.error) return res.json(response);
-      i += 1;
-      
-    })
+    for(var i=0; i<length; i++){
+      fetch_activity(keys[i], channels[keys[i]], user, i, (response)=>{
+        if(response.error) return res.json(response);
+        result[keys[response.indx]] = response;
+        if(response.indx === length - 1){
+          return res.json({error : false, data : result});
+        }
+      });
+    }
   } else {
-    res.json({
+    return res.json({
       error : true,
-      mssg : 'invalid request'
+      mssg : "invalid request"
     });
   }
 });
 
-function fetch_activity(channel_id, last_updated, user, callback){
-  if(last_updated === undefined ) callback({error : true, mssg : 'invalid request'});
+function fetch_activity(channel_id, last_updated, user, indx, callback){
+  if(last_updated === undefined ) callback({error : true, indx, mssg : "invalid request"});
   
   last_updated = new Date(last_updated);
   const query_data = {
@@ -137,8 +101,7 @@ function fetch_activity(channel_id, last_updated, user, callback){
 
   dbo.collection(TABLE_ACTIVITY).find(query_data)
     .toArray((err, result) => {
-      if(err) 
-      callback({ error : true, mssg : err });
+      if(err) callback({ error : true, indx, mssg : err });
     
       /* OPTIMIZE */
       result.forEach((item, index, array) => {
@@ -158,7 +121,7 @@ function fetch_activity(channel_id, last_updated, user, callback){
         }
 
         if(index === array.length - 1){
-          callback({error: false, data: result});
+          callback({error: false, indx, data: result});
         }
       });
     });
