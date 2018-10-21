@@ -117,7 +117,7 @@ function fetch_activity(channel_id, last_updated, user, indx, callback){
           tup["answered"] = answer;
           if(!answer)
             tup.options = Object.keys(tup.options);
-          /* WE CAN CENSOR DATA ON POLL ASWERED ALSO, WE JSUT NEED COUNT */
+          /* WE CAN CENSOR DATA ON POLL ASWERED ALSO, WE JUST NEED COUNT */
           item = tup;
         }
 
