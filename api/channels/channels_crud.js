@@ -50,7 +50,7 @@ router.post("/channels/get-activity-list", verifyRequestCommon, (req, res) => {
 });
 
 /*
-  * API end point for fetching activity list list of channels
+  * API end point for fetching activity list for list of channels
   * Requires (TOKEN, Channels_List {channel_id : last_updated})
   * Returns ({channel_id : List})
 */
@@ -117,6 +117,7 @@ function fetch_activity(channel_id, last_updated, user, indx, callback){
           tup["answered"] = answer;
           if(!answer)
             tup.options = Object.keys(tup.options);
+          /* WE CAN CENSOR DATA ON POLL ASWERED ALSO, WE JSUT NEED COUNT */
           item = tup;
         }
 
