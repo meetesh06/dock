@@ -50,7 +50,7 @@ router.post("/channels/get-activity-list", verifyRequestCommon, (req, res) => {
 });
 
 /*
-  * API end point for fetching activity list
+  * API end point for fetching activity list list of channels
   * Requires (TOKEN, Channels_List {channel_id : last_updated})
   * Returns ({channel_id : List})
 */
