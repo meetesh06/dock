@@ -102,7 +102,7 @@ function fetch_activity(channel_id, last_updated, user, indx, callback){
   dbo.collection(TABLE_ACTIVITY).find(query_data)
     .toArray((err, result) => {
       if(err) callback({ error : true, indx, mssg : err });
-    
+      if(result.length === 0) callback({error : false, indx, data : result});
       /* OPTIMIZE */
       result.forEach((item, index, array) => {
         if(item.type === "poll"){
