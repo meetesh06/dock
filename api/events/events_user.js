@@ -96,11 +96,11 @@ router.post("/events/user/get-event-list", verifyRequest, (req, res) => {
       error: true,
       mssg: err
     });
-    output = []
+    let output = [];
     for(var i=0; i< result.length; i++){
-      e = result[i]
+      let e = result[i];
       e.enrolled = e.enrollees.includes(id);
-      e.enrollees = e.enrollees.length
+      e.enrollees = e.enrollees.length;
       output.push(e);
     }
 

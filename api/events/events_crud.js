@@ -8,6 +8,7 @@ const constants = require("../../constants");
 const TABLE_EVENTS = constants.TABLE_EVENTS;
 const bodyParser = require("body-parser");
 const verifyManagerToken = actions.verifyManagerToken;
+const verifyCommonToken = actions.verifyCommonToken;
 const UID = actions.UID;
 const saveFiles = actions.saveFiles;
 const sendToScope = actions.sendToScope;
@@ -18,6 +19,21 @@ const router = express.Router();
 /* HELPER */
 const verifyRequest = function (req, res, next) {
   verifyManagerToken(req, (err, decoded) => {
+    if(err) {
+      return res.json({
+        error: true,
+        mssg: "Token Verification failed."
+      });
+    } else {
+      req.authorized = true;
+      req.decoded = decoded;
+    }
+    next();
+  });
+};
+
+const verifyRequestCommon = function (req, res, next) {
+  verifyCommonToken(req, (err, decoded) => {
     if(err) {
       return res.json({
         error: true,
@@ -159,6 +175,64 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
     }
   });
 });
+
+/*
+  * indexing style -- db.events.createIndex( { name: "text", college: "text", title: "text", description: "text", category: "text", channel_name: "text", tags: "text" } )
+  * query style -- db.events.find( { $text: { $search: "wild" } } )
+  * API end point to search available channels based on name, description and category
+  * Requires (COMMON TOKEN, channel_id, last_updated)
+  * Returns (results)
+*/
+router.post("/events/search", verifyCommonToken, (req, res) => {
+  // const decoded = req.decoded;
+  let searchQuery = req.body.query;
+  if( searchQuery === undefined ) return res.json({
+    error: true,
+    mssg: "Invalid Request"
+  });
+  const query_data =
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        email: 1,
+        college: 1,
+        reach: { $size: "$reach" },
+        views: { $size: "$views" },
+        enrollees: 1,
+        timestamp: 1,
+        title: 1,
+        channel : 1, 
+        channel_name : 1, 
+        description: 1,
+        location: 1,
+        category: 1,
+        tags: 1,
+        reg_start: 1,
+        reg_end: 1,
+        date: 1,
+        contact_details: 1,
+        faq: 1,
+        price: 1,
+        available_seats: 1,
+        audience: 1,
+        media: 1,
+      }
+    };
+  const match = { $match: { $text: { $search: searchQuery } } };
+
+  dbo.collection(TABLE_EVENTS).aggregate([match, query_data]).toArray( (err, result) => {
+    if(err) return res.json({
+      error: true,
+      mssg: err
+    });
+    res.json({
+      error: false,
+      mssg: result
+    });
+  });
+});
+
 
 /* HELPER */
 function sendEventSuccessMail(reciever, name, id) {

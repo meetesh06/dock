@@ -6,6 +6,7 @@ const bodyParser = require("body-parser");
 const db = require("../../db");
 const constants = require("../../constants");
 const TABLE_ACTIVITY = constants.TABLE_ACTIVITY;
+const TABLE_CHANNELS = constants.TABLE_CHANNELS;
 const verifyCommonToken = actions.verifyCommonToken;
 const isValidDate = actions.isValidDate;
 const dbo = db.getDb();
@@ -46,6 +47,48 @@ router.post("/channels/get-activity-list", verifyRequestCommon, (req, res) => {
   let last_updated = req.body.last_updated;
   fetch_activity(channel_id, last_updated, user, 0, (result)=>{
     return res.json(result);
+  });
+});
+
+
+/*
+  * indexing style -- db.channels.createIndex( { name: "text", description: "text", creator: "text", category: "text" } )
+  * query style -- db.channels.find( { $text: { $search: "wild" } } )
+  * API end point to search available channels based on name, description and category
+  * Requires (COMMON TOKEN, channel_id, last_updated)
+  * Returns (results)
+*/
+router.post("/channels/search", verifyRequestCommon, (req, res) => {
+  // const decoded = req.decoded;
+  let searchQuery = req.body.query;
+  if( searchQuery === undefined ) return res.json({
+    error: true,
+    mssg: "Invalid Request"
+  });
+  const query_data =
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        followers: { $size: "$followers" },
+        media : 1,
+        description : 1,
+        category : 1,
+        creator : 1,
+        priority : 1
+      }
+    };
+  const match = { $match: { $text: { $search: searchQuery } } };
+
+  dbo.collection(TABLE_CHANNELS).aggregate([match, query_data]).toArray( (err, result) => {
+    if(err) return res.json({
+      error: true,
+      mssg: err
+    });
+    res.json({
+      error: false,
+      mssg: result
+    });
   });
 });
 
