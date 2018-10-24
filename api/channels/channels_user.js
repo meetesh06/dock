@@ -38,26 +38,44 @@ router.post("/channels/user/follow", verifyRequest, (req, res) => {
 
   dbo.collection(TABLE_CHANNELS).findOne({ _id : channel_id}, (err, result)=>{
     if(result){
-      dbo.collection(TABLE_CHANNELS).update({ _id : channel_id }, { $addToSet: { followers : id }  }, (err) => {
-        console.log(err);
-      });
-      dbo.collection(TABLE_USERS).update({ email }, { $addToSet: { followed_channels : channel_id }  }, (err) => {
-        if(err) 
-          return res.json({
-            error: true,
-            mssg : err
-          });
-        return res.json({
-          error : false,
-          mssg : "success"
+      if(result.private){
+        dbo.collection(TABLE_CHANNELS).update({ _id : channel_id }, { $addToSet: { requests : id }  }, () => {
+          
         });
-      });
-    } else {
-      return res.json({
-        error: true,
-        mssg: err
-      });
+        dbo.collection(TABLE_USERS).update({ email }, { $addToSet: { requested_channels : channel_id }  }, (err) => {
+          if(err) 
+            return res.json({
+              error: true,
+              mssg : err
+            });
+          return res.json({
+            error : false,
+            requested : true,
+            mssg : "success"
+          });
+        });
+      } else {
+        dbo.collection(TABLE_CHANNELS).update({ _id : channel_id }, { $addToSet: { followers : id }  }, () => {
+          
+        });
+        dbo.collection(TABLE_USERS).update({ email }, { $addToSet: { followed_channels : channel_id }  }, (err) => {
+          if(err) 
+            return res.json({
+              error: true,
+              mssg : err
+            });
+          return res.json({
+            error : false,
+            requested : false,
+            mssg : "success"
+          });
+        });
+      }
     }
+    else  return res.json({
+      error: true,
+      mssg: err
+    });
   });
 });
 
