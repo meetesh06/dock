@@ -188,7 +188,7 @@ router.post("/channels/fetch-activity-list", verifyRequestCommon, (req, res) => 
       fetch_activity(keys[i], channels[keys[i]], user, i, (response)=>{
         if(response.error) return res.json(response);
         result[keys[response.indx]] = response;
-        if(response.indx === length - 1){
+        if(Object.keys(result).length === length){
           return res.json({error : false, data : result});
         }
       });
