@@ -115,7 +115,7 @@ router.post("/channels/top", verifyRequestCommon, (req, res) => {
       fetch_channels(category_list[i], count, i, (response)=>{
         if(response.error) return res.json(response);
         result[category_list[response.index]] = response.data;
-        if(response.index === length-1){
+        if(Object.keys(result).length === length){
           return res.json({error : false, data : result});
         }
       });
@@ -182,7 +182,7 @@ router.post("/channels/fetch-activity-list", verifyRequestCommon, (req, res) => 
   
   let length = keys.length;
   let result = {};
-
+  
   if(length > 0){
     for(var i=0; i<length; i++){
       fetch_activity(keys[i], channels[keys[i]], user, i, (response)=>{
