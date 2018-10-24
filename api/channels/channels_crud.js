@@ -94,77 +94,45 @@ router.post("/channels/search", verifyRequestCommon, (req, res) => {
 
 /*
   * API end point to get top channels based on the cateogry of intersts user likes.
-  * Requires (COMMON TOKEN, category_array, count)
+  * Requires (COMMON TOKEN, category_array, already_subscribed_channels, count)
   * Returns (results)
 */
 router.post("/channels/top", verifyRequestCommon, (req, res) => {
   let cat_list = req.body.category_list;
+  let channels_list = req.body.channels_list;
   let count = req.body.count;
-  if( cat_list === undefined || count === undefined) return res.json({
+
+  if( cat_list === undefined || count === undefined || channels_list === undefined) return res.json({
     error: true,
     mssg: "Invalid Request"
   });
 
   let category_list = JSON.parse(cat_list);
-  let length = category_list.length;
-  let result = {};
+  let channels = JSON.parse(channels_list);
 
-  /* Randomly picking channels we should change this logic */
-  if(length > 0){
-    for(var i=0; i<length; i++){
-      fetch_channels(category_list[i], count, i, (response)=>{
-        if(response.error) return res.json(response);
-        result[category_list[response.index]] = response.data;
-        if(Object.keys(result).length === length){
-          return res.json({error : false, data : result});
-        }
-      });
+  const query_data ={
+    $project: {
+      _id: 1,
+      name: 1,
+      followers: { $size: "$followers" },
+      media : 1,
+      description : 1,
+      category : 1,
+      category_found : { $in : ["$category", category_list] },
+      channel_already : { $in : ["$_id", channels] },
+      creator : 1,
+      priority : 1
     }
-  } else {
-    return res.json({
-      error : true,
-      mssg : "invalid request"
-    });
-  }
-});
+  };
+  const sort = { $sort : { followers : -1 }};
+  const match = { $match : { category_found : true, channel_already : false }};
+  const limit = { $limit : parseInt(count)};
 
-function fetch_channels(category, limit, index, callback){
-  if(category === undefined || limit === undefined) return callback({error : true, index, mssg : "invalid request"});
-
-  dbo.collection(TABLE_CHANNELS).find({category}).toArray((err, result) => {
-    if(err) return callback({error : true, index});
-    let new_result = pick_top(shuffle(result), result.length, limit);
-    return callback({error : false, data : new_result, index});
+  dbo.collection(TABLE_CHANNELS).aggregate([query_data, match, sort, limit]).toArray( (err, result) => {
+    if(err) return res.json({error : true, mssg  : err});
+    return res.json({error : false, data : result});
   });
-}
-
-function pick_top(array, length, count){
-  if(count > length){
-    return array.slice(0, length);
-  } else {
-    return array.slice(0, count);
-  }
-}
-
-function shuffle(array) {
-  var currentIndex = array.length, temporaryValue, randomIndex;
-
-  // While there remain elements to shuffle...
-  while (0 !== currentIndex) {
-
-    // Pick a remaining element...
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex -= 1;
-
-    // And swap it with the current element.
-    temporaryValue = array[currentIndex];
-    array[currentIndex] = array[randomIndex];
-    array[randomIndex] = temporaryValue;
-  }
-
-  return array;
-}
-
+});
 /*
   * API end point for fetching activity list for list of channels
   * Requires (TOKEN, Channels_List {channel_id : last_updated})
