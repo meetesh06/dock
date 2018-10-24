@@ -55,7 +55,7 @@ router.post("/channels/get-activity-list", verifyRequestCommon, (req, res) => {
   * indexing style -- db.channels.createIndex( { name: "text", description: "text", creator: "text", category: "text" } )
   * query style -- db.channels.find( { $text: { $search: "wild" } } )
   * API end point to search available channels based on name, description and category
-  * Requires (COMMON TOKEN, channel_id, last_updated)
+  * Requires (COMMON TOKEN)
   * Returns (results)
 */
 router.post("/channels/search", verifyRequestCommon, (req, res) => {
@@ -85,12 +85,85 @@ router.post("/channels/search", verifyRequestCommon, (req, res) => {
       error: true,
       mssg: err
     });
-    res.json({
+    return res.json({
       error: false,
       mssg: result
     });
   });
 });
+
+/*
+  * API end point to get top channels based on the cateogry of intersts user likes.
+  * Requires (COMMON TOKEN, category_array, count)
+  * Returns (results)
+*/
+router.post("/channels/top", verifyRequestCommon, (req, res) => {
+  let cat_list = req.body.category_list;
+  let count = req.body.count;
+  if( cat_list === undefined || count === undefined) return res.json({
+    error: true,
+    mssg: "Invalid Request"
+  });
+
+  let category_list = JSON.parse(cat_list);
+  let length = category_list.length;
+  let result = {};
+
+  /* Randomly picking channels we should change this logic */
+  if(length > 0){
+    for(var i=0; i<length; i++){
+      fetch_channels(category_list[i], count, i, (response)=>{
+        if(response.error) return res.json(response);
+        result[category_list[response.index]] = response.data;
+        if(response.index === length-1){
+          return res.json({error : false, data : result});
+        }
+      });
+    }
+  } else {
+    return res.json({
+      error : true,
+      mssg : "invalid request"
+    });
+  }
+});
+
+function fetch_channels(category, limit, index, callback){
+  if(category === undefined || limit === undefined) return callback({error : true, index, mssg : "invalid request"});
+
+  dbo.collection(TABLE_CHANNELS).find({category}).toArray((err, result) => {
+    if(err) return callback({error : true, index});
+    let new_result = pick_top(shuffle(result), result.length, limit);
+    return callback({error : false, data : new_result, index});
+  });
+}
+
+function pick_top(array, length, count){
+  if(count > length){
+    return array.slice(0, length);
+  } else {
+    return array.slice(0, count);
+  }
+}
+
+function shuffle(array) {
+  var currentIndex = array.length, temporaryValue, randomIndex;
+
+  // While there remain elements to shuffle...
+  while (0 !== currentIndex) {
+
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+
+    // And swap it with the current element.
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+  }
+
+  return array;
+}
 
 /*
   * API end point for fetching activity list for list of channels
@@ -129,7 +202,7 @@ router.post("/channels/fetch-activity-list", verifyRequestCommon, (req, res) => 
 });
 
 function fetch_activity(channel_id, last_updated, user, indx, callback){
-  if(last_updated === undefined ) callback({error : true, indx, mssg : "invalid request"});
+  if(last_updated === undefined ) return callback({error : true, indx, mssg : "invalid request"});
   
   last_updated = new Date(last_updated);
   const query_data = {
@@ -144,8 +217,8 @@ function fetch_activity(channel_id, last_updated, user, indx, callback){
 
   dbo.collection(TABLE_ACTIVITY).find(query_data)
     .toArray((err, result) => {
-      if(err) callback({ error : true, indx, mssg : err });
-      if(result.length === 0) callback({error : false, indx, data : result});
+      if(err) return callback({ error : true, indx, mssg : err });
+      if(result.length === 0) return callback({error : false, indx, data : result});
       /* OPTIMIZE */
       result.forEach((item, index, array) => {
         if(item.type === "poll"){
@@ -165,7 +238,7 @@ function fetch_activity(channel_id, last_updated, user, indx, callback){
         }
 
         if(index === array.length - 1){
-          callback({error: false, indx, data: result});
+          return callback({error: false, indx, data: result});
         }
       });
     });
