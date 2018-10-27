@@ -162,6 +162,7 @@ router.post("/channels/user/fetch-college-channels", verifyRequest, (req, res) =
         _id: 1,
         name: 1,
         followers: 1,
+        requests: 1,
         media : 1,
         description : 1,
         category : 1,
