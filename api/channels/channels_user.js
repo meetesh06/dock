@@ -129,6 +129,7 @@ router.post("/channels/user/fetch-channel", verifyRequest, (req, res) => {
   });
   
   dbo.collection(TABLE_CHANNELS).findOne({_id : channel_id}, (err, result) =>{
+    result.requests = result.requests === undefined ? [] : result.requests;
     result["followed"] = result.followers.includes(id);
     result["requested"] = result.requests.includes(id);
     result.followers = result.followers.length;
@@ -188,12 +189,13 @@ router.post("/channels/user/fetch-college-channels", verifyRequest, (req, res) =
     let output = [];
     for(var i=0; i<result.length; i++){
       let e = result[i];
+      e.requests = e.requests === undefined ? [] : e.requests;
       e.followed = e.followers.includes(id);
       e.requested = e.requests.includes(id);
       e.followers = e.followers.length;
       output.push(e);
     }
-
+    
     res.json({
       error : false,
       data : output
