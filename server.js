@@ -21,6 +21,7 @@ db.connectToServer( function( err ) {
     const events_manager = require("./api/events/events_manager");
     const channels = require("./api/channels/channels_crud");
     const channels_user = require("./api/channels/channels_user");
+    const users_crud = require("./api/users/users_crud");
     const channels_manager = require("./api/channels/channels_manager");
     const auth = require("./api/auth/auth");
     const manager = require("./api/manager/manager");
@@ -32,6 +33,7 @@ db.connectToServer( function( err ) {
     app.use("/", channels);
     app.use("/", channels_user);
     app.use("/", channels_manager);
+    app.use("/", users_crud);
     app.use("/", auth);
     app.use("/", manager);
     app.use("/", others);
