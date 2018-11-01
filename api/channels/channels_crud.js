@@ -90,7 +90,7 @@ router.post("/channels/search", verifyRequestCommon, (req, res) => {
     });
     return res.json({
       error: false,
-      mssg: result
+      data: result
     });
   });
 });

@@ -231,7 +231,7 @@ router.post("/events/search", verifyRequestCommon, (req, res) => {
     });
     res.json({
       error: false,
-      mssg: result
+      data: result
     });
   });
 });
