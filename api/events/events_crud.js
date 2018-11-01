@@ -183,7 +183,7 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
   * Requires (COMMON TOKEN, channel_id, last_updated)
   * Returns (results)
 */
-router.post("/events/search", verifyCommonToken, (req, res) => {
+router.post("/events/search", verifyRequestCommon, (req, res) => {
   // const decoded = req.decoded;
   let searchQuery = req.body.query;
   if( searchQuery === undefined ) return res.json({
@@ -216,12 +216,15 @@ router.post("/events/search", verifyCommonToken, (req, res) => {
         price: 1,
         available_seats: 1,
         audience: 1,
+        score : { $meta : "textScore"},
         media: 1,
       }
     };
   const match = { $match: { $text: { $search: searchQuery } } };
+  const sort = { $sort : {score : -1}};
+  const limit = { $limit : 10};
 
-  dbo.collection(TABLE_EVENTS).aggregate([match, query_data]).toArray( (err, result) => {
+  dbo.collection(TABLE_EVENTS).aggregate([match, query_data, sort, limit]).toArray( (err, result) => {
     if(err) return res.json({
       error: true,
       mssg: err

@@ -75,12 +75,15 @@ router.post("/channels/search", verifyRequestCommon, (req, res) => {
         description : 1,
         category : 1,
         creator : 1,
+        score : { $meta : "textScore"},
         priority : 1
       }
     };
   const match = { $match: { $text: { $search: searchQuery } } };
+  const sort = { $sort : {score : -1}};
+  const limit = { $limit : 10};
 
-  dbo.collection(TABLE_CHANNELS).aggregate([match, query_data]).toArray( (err, result) => {
+  dbo.collection(TABLE_CHANNELS).aggregate([match, query_data, sort, limit]).toArray( (err, result) => {
     if(err) return res.json({
       error: true,
       mssg: err
