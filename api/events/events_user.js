@@ -179,10 +179,10 @@ router.post("/events/user/fetch-event-data", verifyRequest, (req, res) => {
       mssg: err
     });
     if(result.length > 0){
-      e = result[0]
+      let e = result[0];
       e.enrolled = e.enrollees.includes(id);
-      e.enrollees = e.enrollees.length
-      output = [];
+      e.enrollees = e.enrollees.length;
+      let output = [];
       output.push(e);
       res.json({
         error: false,
@@ -205,15 +205,22 @@ router.post("/events/user/purchase", verifyRequest, (req, res) => {
   if(event_id === undefined) {
     return res.json({
       error : true,
-      mssg : 'Missing Fields'
+      mssg : "Missing Fields"
     });
   }
 
-  purchase_id = UID(32)
+  let purchase_id = UID(32);
 
   dbo.collection(TABLE_PAYMENTS).findOne({event_id, user_id : id}, (err, result) =>{
-    if(err) return;
-    if(result) return;
+    if(err) return res.json({
+      error: true,
+      mssg : err
+    });
+    console.log(result);
+    if(result) return res.json({
+      error : false,
+      data : result
+    });
 
     dbo.collection(TABLE_PAYMENTS).insertOne({ _id : purchase_id, user_id : id, event_id, timestamp : new Date()}, (err)=>{
       if(err) return;
@@ -238,7 +245,7 @@ router.post("/events/user/purchase", verifyRequest, (req, res) => {
         }
       });
     });
-    })
+  });
 });
 
 /*
