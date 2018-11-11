@@ -81,8 +81,8 @@ router.post("/users/connect", verifyRequestCommon, (req, res) => {
 
   dbo.collection(TABLE_USERS).findOne({ _id : user_id}, (err, result)=>{
     if(result){
-      dbo.collection(TABLE_USERS).update({ _id :  user_id}, { $addToSet: { requests : id }  }, () => {
-        dbo.collection(TABLE_USERS).update({ _id : id }, { $addToSet: { requested_users : user_id }  }, (err) => {
+      dbo.collection(TABLE_USERS).update({ _id :  user_id}, { $addToSet: { connection_requests : id }  }, () => {
+        dbo.collection(TABLE_USERS).update({ _id : id }, { $addToSet: { sent_connection_requests : user_id }  }, (err) => {
           if(err)
             return res.json({
               error: true,
