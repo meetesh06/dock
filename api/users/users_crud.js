@@ -69,4 +69,38 @@ router.post("/users/search", verifyRequestCommon, (req, res) => {
   });
 });
 
+/*
+  * API end point to follow a user, update DB with the userid
+  * Requires (TOKEN, channel_id)
+  * Returns (ACKNOWLEDGEMENT)
+*/
+router.post("/users/follow", verifyRequestCommon, (req, res) => {
+  const decoded = req.decoded;
+  const id = decoded.id; /* USER ID */
+  const user_id = req.body.user_id; /* ID OF USER THAT ONE WANTS TO CONNECT */
+
+  dbo.collection(TABLE_USERS).findOne({ _id : user_id}, (err, result)=>{
+    if(result){
+      dbo.collection(TABLE_USERS).update({ _id :  user_id}, { $addToSet: { requests : id }  }, () => {
+        dbo.collection(TABLE_USERS).update({ _id : id }, { $addToSet: { requested_users : user_id }  }, (err) => {
+          if(err)
+            return res.json({
+              error: true,
+              mssg : err
+            });
+          return res.json({
+            error : false,
+            requested : true,
+            mssg : "success"
+          });
+        });
+      });
+    }
+    else  return res.json({
+      error: true,
+      mssg: err
+    });
+  });
+});
+
 module.exports = router;

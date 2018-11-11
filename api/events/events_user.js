@@ -216,7 +216,7 @@ router.post("/events/user/purchase", verifyRequest, (req, res) => {
       error: true,
       mssg : err
     });
-    console.log(result);
+    
     if(result) return res.json({
       error : false,
       data : result
@@ -224,9 +224,10 @@ router.post("/events/user/purchase", verifyRequest, (req, res) => {
 
     dbo.collection(TABLE_PAYMENTS).insertOne({ _id : purchase_id, user_id : id, event_id, timestamp : new Date()}, (err)=>{
       if(err) return;
-      dbo.collection(TABLE_EVENTS).update({ _id : event_id}, { $addToSet: { enrollees : id }  }, (err, result)=>{
+      dbo.collection(TABLE_EVENTS).updateOne({ _id : event_id}, { $addToSet: { enrollees : id }  }, (err, result)=>{
         if(result){
-          dbo.collection(TABLE_USERS).update({ _id : id }, { $addToSet: { events : event_id }  }, (err, result1) => {
+          dbo.collection(TABLE_USERS).updateOne({ _id : id }, { $addToSet: { events : event_id }  }, (err, results) => {
+            console.log(err, results);
             if(err)
               return res.json({
                 error: true,
