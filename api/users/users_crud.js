@@ -74,7 +74,7 @@ router.post("/users/search", verifyRequestCommon, (req, res) => {
   * Requires (TOKEN, channel_id)
   * Returns (ACKNOWLEDGEMENT)
 */
-router.post("/users/follow", verifyRequestCommon, (req, res) => {
+router.post("/users/connect", verifyRequestCommon, (req, res) => {
   const decoded = req.decoded;
   const id = decoded.id; /* USER ID */
   const user_id = req.body.user_id; /* ID OF USER THAT ONE WANTS TO CONNECT */
