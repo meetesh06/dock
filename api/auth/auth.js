@@ -93,8 +93,8 @@ router.post("/auth/signin", async (req, res) => {
       mssg: "invalid email"
     });
   }
+  
   const verified = await verify(token);
-  if(verified){
   dbo.collection(TABLE_USERS).findOne(
     {
       email
@@ -112,6 +112,7 @@ router.post("/auth/signin", async (req, res) => {
           name: result.name,
           gender : result.gender,
           mobile : result.mobile,
+          verified,
           id : (req.body.email + "-" + result.name).replace(/\./g, "$"),
           user: true
         },
@@ -122,6 +123,7 @@ router.post("/auth/signin", async (req, res) => {
           error: false,
           newUser: false,
           token,
+          verified,
           data: result
         });
       } else {
@@ -140,12 +142,6 @@ router.post("/auth/signin", async (req, res) => {
         });
       }
     });
-  } else {
-    return res.json({
-      error : true,
-      mssg : 'Invalid identity found, blocked!'
-    })
-  }
 });
 
 /*
@@ -168,6 +164,8 @@ router.post("/auth/new-user", (req, res) => {
         let college = req.body.college;
         let mobile = req.body.mobile;
         let gender = req.body.gender;
+        let device = req.body.device;
+        let fb_token = req.body.fb_token;
         let id  = (email + "-" + name).replace(/\./g, "$");
 
         if(name === undefined || email === undefined || college === undefined || gender === undefined || mobile === undefined) {
@@ -196,6 +194,8 @@ router.post("/auth/new-user", (req, res) => {
           college,
           mobile,
           gender,
+          fb_token,
+          device,
           _id : id,
         };
 
