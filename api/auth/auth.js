@@ -93,7 +93,6 @@ router.post("/auth/signin", async (req, res) => {
       mssg: "invalid email"
     });
   }
-  
   const verified = await verify(token);
   dbo.collection(TABLE_USERS).findOne(
     {
