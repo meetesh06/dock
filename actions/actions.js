@@ -63,14 +63,13 @@ exports.saveFiles = function(files, callback, params, folder) {
     var loc = __dirname + "/media/" + filename;
     if(folder === "channel") {
       loc = __dirname + "/media/channels/" + filename;
-
     }
     toCompress.push(new Promise((resolve, reject) => {
       value.mv(loc, function(err) {
         if (err) {
           return reject("reject");
         } else {
-          imagemin([loc], __dirname + "/media/", {
+          imagemin([loc], folder === "channel" ? __dirname + "/media/channels" : __dirname + "/media/", {
             plugins: [
               imageminWebp({quality: 50})
             ]

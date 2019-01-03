@@ -71,7 +71,6 @@ router.post("/auth/manager/verify", (req, res) => {
 
 router.post("/auth/super/verify", (req, res) => {
   verifySuperToken(req, (err, decoded) => {
-    console.log(err, decoded);
     if(err) {
       return res.json({
         error: true,
