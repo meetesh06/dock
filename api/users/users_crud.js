@@ -6,6 +6,7 @@ const bodyParser = require("body-parser");
 const db = require("../../db");
 const constants = require("../../constants");
 const TABLE_USERS = constants.TABLE_USERS;
+const TABLE_CATEGORIES = constants.TABLE_CATEGORIES;
 const verifyCommonToken = actions.verifyCommonToken;
 
 const dbo = db.getDb();
@@ -97,6 +98,22 @@ router.post("/users/connect", verifyRequestCommon, (req, res) => {
       });
     }
     else  return res.json({
+      error: true,
+      mssg: err
+    });
+  });
+});
+
+router.post("https://mycampusdock.com/users/get-category-list", (req, res) => {
+
+  dbo.collection(TABLE_CATEGORIES).find({ }).toArray((err, result)=>{
+    if(result){
+      return res.json({
+        error: false,
+        mssg: result
+      });
+    }
+    else return res.json({
       error: true,
       mssg: err
     });
