@@ -104,7 +104,7 @@ router.post("/users/connect", verifyRequestCommon, (req, res) => {
   });
 });
 
-router.post("https://mycampusdock.com/users/get-category-list", (req, res) => {
+router.post("/users/get-category-list", (req, res) => {
 
   dbo.collection(TABLE_CATEGORIES).find({ }).toArray((err, result)=>{
     if(result){
