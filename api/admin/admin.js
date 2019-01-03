@@ -140,7 +140,7 @@ router.post("/admin/update-channel", (req, res) => {
               mssg: err
             });
           } else {
-            dbo.collection(TABLE_CHANNELS).updateOne({ _id }, { $set:{ name, description, creator_password: creatorPassword, media: ["channels/"+media] } }, (err, res) => {
+            dbo.collection(TABLE_CHANNELS).updateOne({ _id }, { $set:{ name, description, creator_password: creatorPassword, media: ["channels/"+media] } }, (err, data) => {
               if (err) {
                 return res.json({
                   error: true,
