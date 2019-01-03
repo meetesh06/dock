@@ -9,6 +9,7 @@ module.exports = Object.freeze({
   TABLE_COLLEGES : "colleges",
   TABLE_ACTIVITY : "activities",
   TABLE_USERS_ADMIN : "users_admin",
+  TABLE_SUPER_ADMIN : "super_admin",
   TABLE_USER_ACTIVITY : "user_activities",
   TABLE_USER_ANALYTICS : "user_analytics",
   TABLE_ADMIN_ANALYTICS : "user_admin_analytics",

@@ -50,7 +50,7 @@ const UID_func = function(length) {
 
 exports.UID = UID_func;
 
-exports.saveFiles = function(files, callback, params) {
+exports.saveFiles = function(files, callback, params, folder) {
   var media = [];
   let err = false;
   let toCompress = [];
@@ -61,6 +61,10 @@ exports.saveFiles = function(files, callback, params) {
       filename = filename.replace(/\./g, "$");
     }
     var loc = __dirname + "/media/" + filename;
+    if(folder === "channel") {
+      loc = __dirname + "/media/channels/" + filename;
+
+    }
     toCompress.push(new Promise((resolve, reject) => {
       value.mv(loc, function(err) {
         if (err) {
@@ -146,6 +150,17 @@ exports.verifyManagerToken = function(req, callback) {
   jwt.verify(token, APP_SECRET_KEY, function(err, decoded) {
     if (err) return callback(true);
     if ( decoded && decoded.manager === true ) return callback(false, decoded);
+    return callback(true);
+  });
+};
+
+exports.verifySuperToken = function(req, callback) {
+  var token = req.headers["x-access-token"];
+  if (!token) return callback(true);
+  jwt.verify(token, APP_SECRET_KEY, function(err, decoded) {
+    console.log(decoded);
+    if (err) return callback(true);
+    if ( decoded && decoded.super === true ) return callback(false, decoded);
     return callback(true);
   });
 };

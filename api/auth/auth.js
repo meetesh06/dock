@@ -17,11 +17,13 @@ const {OAuth2Client} = require("google-auth-library");
 const client = new OAuth2Client(CLIENT_ID);
 const cryptrObject = new cryptr(APP_SECRET_KEY);
 const verifyManagerToken = actions.verifyManagerToken;
+const verifySuperToken = actions.verifySuperToken;
 const verifyTempToken = actions.verifyTempToken;
 const verifyUserToken = actions.verifyUserToken;
 const TABLE_USERS = constants.TABLE_USERS;
 const TABLE_CHANNELS = constants.TABLE_CHANNELS;
 const TABLE_USERS_ADMIN = constants.TABLE_USERS_ADMIN;
+const TABLE_SUPER_ADMIN = constants.TABLE_SUPER_ADMIN;
 const dbo = db.getDb();
 const router = express.Router();
 router.use(bodyParser.json());
@@ -50,6 +52,39 @@ router.post("/auth/manager/verify", (req, res) => {
         limits: decoded.limits,
         channel : decoded.channel,
         manager: decoded.manager
+      };
+      jwt.sign(token_payload, APP_SECRET_KEY, { expiresIn: "100d" }, function(err, token) {
+        if(err) {
+          return res.json({
+            error: true,
+            mssg: "error signing token"
+          });
+        }
+        return res.json({
+          error: false,
+          token,
+        });
+      });
+    }
+  });
+});
+
+router.post("/auth/super/verify", (req, res) => {
+  verifySuperToken(req, (err, decoded) => {
+    console.log(err, decoded);
+    if(err) {
+      return res.json({
+        error: true,
+        mssg: "Token Verification failed."
+      });
+    } 
+    else {
+      const token_payload = {
+        email: decoded.email,
+        name: decoded.name,
+        college: decoded.college,
+        scope: decoded.scope,
+        super: decoded.super
       };
       jwt.sign(token_payload, APP_SECRET_KEY, { expiresIn: "100d" }, function(err, token) {
         if(err) {
@@ -142,6 +177,7 @@ router.post("/auth/signin", async (req, res) => {
       }
     });
 });
+
 
 /*
   * API end point to generate new user
@@ -357,6 +393,70 @@ router.post("/auth/manager/signin", (req, res) => {
       });
     }
     else {
+      return res.json({
+        error: true,
+        mssg: "invalid username/password combination"
+      });
+    }
+  });
+});
+
+router.post("/auth/super/signin", (req, res) => {
+  if (!req.body) return res.json({
+    error: true,
+    mssg: "missing fields"
+  });
+  const email = req.body.email;
+  const password = req.body.password;
+  if ( email === undefined || password === undefined ) {
+    return res.json({
+      error: true,
+      mssg: "missing fields"
+    });
+  }
+  if (!emailValidator.validate(email)) {
+    return res.json({
+      error: true,
+      mssg: "invalid email"
+    });
+  }
+  dbo.collection(TABLE_SUPER_ADMIN).findOne({
+    email
+  }, function(err, data) {
+    if (err) {
+      return res.json({
+        error: true,
+        mssg: "invalid username/password combination"
+      });
+    }
+    if (data != null) {
+      if (passwordHash.verify(password, data.password)) {
+        const token_payload = {
+          email: data.email,
+          name: data.name,
+          college: data.college,
+          scope: data.scope,
+          super: true
+        };
+        jwt.sign(token_payload, APP_SECRET_KEY, { expiresIn: "100d" }, function(err, token) {
+          if(err) {
+            return res.json({
+              error: true,
+              mssg: "error signing token"
+            });
+          }
+          return res.json({
+            error: false,
+            token
+          });
+        });
+      } else {
+        return res.json({
+          error: true,
+          mssg: "invalid username/password combination"
+        });
+      }
+    } else {
       return res.json({
         error: true,
         mssg: "invalid username/password combination"
