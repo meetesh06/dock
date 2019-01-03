@@ -118,7 +118,6 @@ router.post("/admin/update-channel", (req, res) => {
         error: true,
         mssg: "missing fields"
       });
-      
       if(req.files === undefined || req.files === null || req.files.length === 0) {
         dbo.collection(TABLE_CHANNELS).updateOne({ _id: ObjectId(_id) }, { $set:{ name, description, creator_password: creatorPassword } }, (err, data) => {
           if (err) {
@@ -134,6 +133,7 @@ router.post("/admin/update-channel", (req, res) => {
         });
       } else {
         saveFiles(req.files, function(media, err) {
+          console.log(media);
           if (err) {
             return res.json({
               error: true,
