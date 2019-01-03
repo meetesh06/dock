@@ -5,11 +5,11 @@ const PORT = 65534;
 const HOST = "127.0.0.1";
 const db = require("./db");
 const app = express();
-const subdomain = require("express-subdomain");
 const path = require('path');
 
 app.use(express.static("email_resources"));
 app.use(express.static("actions/media"));
+app.use(express.static("public"));
 app.use(fileUpload());
 
 db.connectToServer( function( err ) {
@@ -49,7 +49,7 @@ db.connectToServer( function( err ) {
     app.use("/", others);
     app.use("/", admin);
 
-    app.use(subdomain("admin", router));
+    app.use("/admin", router);
     
     app.listen(PORT, HOST, () => {
       console.log("Dock API Server is live on http://"+HOST+":"+PORT);
