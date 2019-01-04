@@ -26,6 +26,8 @@ const TABLE_USERS_ADMIN = constants.TABLE_USERS_ADMIN;
 const TABLE_SUPER_ADMIN = constants.TABLE_SUPER_ADMIN;
 const dbo = db.getDb();
 const router = express.Router();
+
+const UID = actions.UID;
 router.use(bodyParser.json());
 router.use(bodyParser.urlencoded({ extended: true }));
 
@@ -492,6 +494,44 @@ router.post("/auth/fetch-user", (req, res) => {
       });
     }
   });
+});
+
+router.post("/auth/get-general-token", (req, res) => {
+  if (!req.body) return res.json({
+    error: true,
+    mssg: "missing fields"
+  });
+  const college = req.body.college;
+  const interests = req.body.interests;
+  const others = req.body.others;
+
+  if( college === undefined || interests === undefined || others === undefined ) return res.json({
+    error: true,
+    mssg: "missing fields"
+  });
+  const token_payload = {
+    id: UID(10),
+    college,
+    interests,
+    others,
+    anonymous: true
+  };
+  jwt.sign(token_payload, APP_SECRET_KEY, { expiresIn: "100d" }, function(err, token) {
+    if(err) {
+      return res.json({
+        error: true,
+        mssg: "error signing token"
+      });
+    }
+    return res.json({
+      error: false,
+      mssg: 'successfully generated a new token',
+      data: token
+    });
+  });
+
+
+  
 });
 
 /* HELPERS */
