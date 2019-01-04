@@ -497,6 +497,7 @@ router.post("/auth/fetch-user", (req, res) => {
 });
 
 router.post("/auth/get-general-token", (req, res) => {
+  console.log('GENERAL TOKEN REQUEST');
   if (!req.body) return res.json({
     error: true,
     mssg: "missing fields"
