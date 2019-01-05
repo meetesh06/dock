@@ -10,8 +10,11 @@ const { ObjectId } = require('mongodb'); // or ObjectID
 const verifySuperToken = actions.verifySuperToken;
 const TABLE_CHANNELS = constants.TABLE_CHANNELS;
 const TABLE_CATEGORIES = constants.TABLE_CATEGORIES;
+const TABLE_USERS_ADMIN = constants.TABLE_USERS_ADMIN;
+const passwordHash = require("password-hash");
 
 const saveFiles = actions.saveFiles;
+const UID = actions.UID;
 
 router.use(bodyParser.json());
 router.use(bodyParser.urlencoded({ extended: true }));
@@ -37,7 +40,7 @@ router.post("/admin/create-channel", (req, res) => {
         mssg: "Token Verification failed."
       });
     } else {
-      
+      const id = UID(12);
       const name = req.body.name;
       const description = req.body.description;
       const private = req.body.private;
@@ -63,34 +66,46 @@ router.post("/admin/create-channel", (req, res) => {
             mssg: err
           });
         } else {
-          dbo.collection(TABLE_CHANNELS).insertOne({
-            name,
-            description,
-            private: private === "true" ? true : false,
-            priority: official === "true" ? 5 : 3,
-            category,
-            creator: creatorName,
-            created_on: new Date(),
-            creator_email: creatorEmail,
-            creator_password: creatorPassword,
-            media: ["channels/"+media],
-            parent: decoded.email,
-            college: decoded.college
-          }, function(err, data) {
-            if (err) {
+          dbo.collection(TABLE_USERS_ADMIN).insertOne({
+            email: creatorEmail,
+            password: passwordHash.generate(creatorPassword),
+            college: decoded.college,
+            channel_id: id,
+            authority: 0
+          }, (err, data) => {
+            if(err) return res.json({
+              error: true,
+              mssg: err.message
+            });
+            dbo.collection(TABLE_CHANNELS).insertOne({
+              _id: id,
+              name,
+              description,
+              private: private === "true" ? true : false,
+              priority: official === "true" ? 5 : 3,
+              category,
+              creator: creatorName,
+              created_on: new Date(),
+              creator_email: creatorEmail,
+              // creator_password: creatorPassword,
+              media: ["channels/"+media],
+              parent: decoded.email,
+              college: decoded.college
+            }, function(err, data) {
+              if (err) {
+                return res.json({
+                  error: true,
+                  mssg: err.message
+                });
+              }
               return res.json({
-                error: true,
-                mssg: "Unknown error occured"
+                error: false,
+                mssg: "Created Successfully"
               });
-            }
-            return res.json({
-              error: false,
-              mssg: "Created Successfully"
             });
           });
         }
       }, undefined, "channel");
-      
     }
   });
 });

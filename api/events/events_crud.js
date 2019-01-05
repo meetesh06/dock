@@ -56,6 +56,8 @@ router.use(bodyParser.urlencoded({ extended: true }));
   * Returns (ACKNOWLDEGEMENT, FIREBASE_EVENT, EMAIL)
 */
 router.post("/events/manager/create", verifyRequest, (req, res) => {
+  console.log(req.body);
+  console.log(req.files);
   const uid = UID(12);
   const decoded = req.decoded;
   const email = decoded.email;
@@ -84,23 +86,23 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
   const price = req.body.price;
   const available_seats = req.body.available_seats;
   
-  if( title === undefined || description === undefined || location === undefined || category === undefined || faq === undefined || tags === undefined || tags.trim() === "" || reg_start === undefined || reg_end === undefined || date === undefined || price === undefined ||contact_details === undefined || available_seats === undefined || time === undefined) {
+  if( title === undefined || description === undefined || location === undefined || category === undefined || faq === undefined || tags === undefined || reg_start === undefined || reg_end === undefined || date === undefined || price === undefined ||contact_details === undefined || available_seats === undefined || time === undefined) {
     return res.json({
       error: true,
-      mssg: "invalid request"
+      mssg: "invalid request 1"
     });
   }
 
-  if(!parseInt(price) === undefined)
+  if(!parseInt(price))
     return res.json({
       error: true,
-      mssg: "invalid request"
+      mssg: "invalid request 2"
     });
 
   if(!parseInt(available_seats))
     return res.json({
       error: true,
-      mssg: "invalid request"
+      mssg: "invalid request 3"
     });
   
   if(req.files === undefined || req.files.length === 0) {
@@ -109,6 +111,7 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
       mssg: "invalid request, no files"
     });
   }
+  console.log("ALL STUFF VALID");
 
   audience.push(channel._id.trim());
   audience.push(category);
