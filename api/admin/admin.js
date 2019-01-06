@@ -180,7 +180,7 @@ router.post("/admin/update-channel", (req, res) => {
         });
       } else {
         if(req.files === undefined || req.files === null || req.files.length === 0) {
-          dbo.collection(TABLE_CHANNELS).updateOne({ _id: ObjectId(_id) }, { $set:{ name, description } }, (err, data) => {
+          dbo.collection(TABLE_CHANNELS).updateOne({ _id }, { $set:{ name, description } }, (err, data) => {
             if (err) {
               return res.json({
                 error: true,
@@ -201,8 +201,8 @@ router.post("/admin/update-channel", (req, res) => {
                 mssg: err
               });
             } else {
-              
-              dbo.collection(TABLE_CHANNELS).update({ _id: ObjectId(_id) }, { $set:{ name, description, creator_password: creatorPassword, media: ["channels/"+media] } }, { upsert: false }, (err, data) => {
+              console.log("channels/"+media);
+              dbo.collection(TABLE_CHANNELS).update({ _id }, { $set:{ name, description, creator_password: creatorPassword, media: ["channels/"+media] } }, { upsert: false }, (err, data) => {
                 if (err) {
                   return res.json({
                     error: true,

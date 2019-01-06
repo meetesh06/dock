@@ -4,8 +4,8 @@ self.__precacheManifest = [
     "url": "/static/media/CampusStoryLogo.fea71e00.svg"
   },
   {
-    "revision": "0ef464c50208b68ceeda",
-    "url": "/static/js/runtime~main.0ef464c5.js"
+    "revision": "2cae8765ccba495e1fdc",
+    "url": "/static/js/runtime~main.2cae8765.js"
   },
   {
     "revision": "a1635a455e9e46364fd5",
@@ -20,8 +20,8 @@ self.__precacheManifest = [
     "url": "/static/js/5.88d865cf.chunk.js"
   },
   {
-    "revision": "8e9594d8f1528f3e8b25",
-    "url": "/static/js/4.8e9594d8.chunk.js"
+    "revision": "ad735ff91bd4fa336d44",
+    "url": "/static/js/4.ad735ff9.chunk.js"
   },
   {
     "revision": "6d1b2476d1708d610930",
@@ -36,7 +36,7 @@ self.__precacheManifest = [
     "url": "/static/js/0.d17aea19.chunk.js"
   },
   {
-    "revision": "af8a20e19691e558c2f016b3d7b7deab",
+    "revision": "570de0eaa088f8bca640022d4935a23b",
     "url": "/index.html"
   }
 ];
