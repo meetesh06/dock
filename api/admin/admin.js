@@ -133,30 +133,14 @@ router.post("/admin/update-channel", (req, res) => {
         error: true,
         mssg: "missing fields"
       });
-      if(req.files === undefined || req.files === null || req.files.length === 0) {
-        dbo.collection(TABLE_CHANNELS).updateOne({ _id: ObjectId(_id) }, { $set:{ name, description, creator_password: creatorPassword } }, (err, data) => {
-          if (err) {
-            return res.json({
-              error: true,
-              mssg: "Unknown error occured"
-            });
-          }
-          return res.json({
-            error: false,
-            mssg: "Updated Successfully"
+      if(creatorPassword !== "") {
+        dbo.collection(TABLE_USERS_ADMIN).updateOne({ channel_id: _id }, { $set:{ password: passwordHash.generate(creatorPassword) } }, (err, data) => {
+          if(err) return res.json({
+            error: true,
+            mssg: err
           });
-        });
-      } else {
-        saveFiles(req.files, function(media, err) {
-          console.log(media);
-          if (err) {
-            return res.json({
-              error: true,
-              mssg: err
-            });
-          } else {
-            
-            dbo.collection(TABLE_CHANNELS).update({ _id: ObjectId(_id) }, { $set:{ name, description, creator_password: creatorPassword, media: ["channels/"+media] } }, { upsert: false }, (err, data) => {
+          if(req.files === undefined || req.files === null || req.files.length === 0) {
+            dbo.collection(TABLE_CHANNELS).updateOne({ _id: ObjectId(_id) }, { $set:{ name, description } }, (err, data) => {
               if (err) {
                 return res.json({
                   error: true,
@@ -168,8 +152,71 @@ router.post("/admin/update-channel", (req, res) => {
                 mssg: "Updated Successfully"
               });
             });
+          } else {
+            saveFiles(req.files, function(media, err) {
+              console.log(media);
+              if (err) {
+                return res.json({
+                  error: true,
+                  mssg: err
+                });
+              } else {
+                
+                dbo.collection(TABLE_CHANNELS).update({ _id: ObjectId(_id) }, { $set:{ name, description, creator_password: creatorPassword, media: ["channels/"+media] } }, { upsert: false }, (err, data) => {
+                  if (err) {
+                    return res.json({
+                      error: true,
+                      mssg: "Unknown error occured"
+                    });
+                  }
+                  return res.json({
+                    error: false,
+                    mssg: "Updated Successfully"
+                  });
+                });
+              }
+            }, undefined, "channel");
           }
-        }, undefined, "channel");
+        });
+      } else {
+        if(req.files === undefined || req.files === null || req.files.length === 0) {
+          dbo.collection(TABLE_CHANNELS).updateOne({ _id: ObjectId(_id) }, { $set:{ name, description } }, (err, data) => {
+            if (err) {
+              return res.json({
+                error: true,
+                mssg: "Unknown error occured"
+              });
+            }
+            return res.json({
+              error: false,
+              mssg: "Updated Successfully"
+            });
+          });
+        } else {
+          saveFiles(req.files, function(media, err) {
+            console.log(media);
+            if (err) {
+              return res.json({
+                error: true,
+                mssg: err
+              });
+            } else {
+              
+              dbo.collection(TABLE_CHANNELS).update({ _id: ObjectId(_id) }, { $set:{ name, description, creator_password: creatorPassword, media: ["channels/"+media] } }, { upsert: false }, (err, data) => {
+                if (err) {
+                  return res.json({
+                    error: true,
+                    mssg: "Unknown error occured"
+                  });
+                }
+                return res.json({
+                  error: false,
+                  mssg: "Updated Successfully"
+                });
+              });
+            }
+          }, undefined, "channel");
+        }
       }
     }
   });
