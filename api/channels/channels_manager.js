@@ -13,6 +13,7 @@ const updateScopeAsync = actions.updateScopeAsync;
 const sendToScope = actions.sendToScope;
 const isValidDate = actions.isValidDate;
 const saveFiles = actions.saveFiles;
+const saveVideo = actions.saveVideo;
 const UID = actions.UID;
 const dbo = db.getDb();
 router.use(bodyParser.json());
@@ -156,6 +157,95 @@ router.post("/channels/manager/create-image-post", verifyRequest, (req, res) => 
       });
     } else {
       query_data["media"] = media;
+      dbo.collection(TABLE_ACTIVITY).insertOne(query_data, function(err) {
+        if (err) {
+          return res.json({
+            error: true,
+            mssg: "server side error"
+          });
+        }
+    
+        res.status(200).json({
+          error: false,
+          mssg: "Success"
+        });
+    
+        updateScopeAsync(audience, 1);
+        const payload = {
+          data: {
+            type: "post",
+            content: JSON.stringify(query_data)
+          },
+          notification : {
+            body : "Tap to know more | Dock",
+            title : ""+query_data["message"]
+          }
+        };
+        sendToScope(query_data["audience"], payload);
+      });
+    }
+  });
+});
+
+/*
+  * API end point to create an video post
+  * Requires (TOKEN, message, video)
+  * Returns (ACKNOWLEDGEMENT, FIREBASE_EVENT)
+*/
+router.post("/channels/manager/create-video-post", verifyRequest, (req, res) => {
+  const uid = UID(12);
+  const decoded = req.decoded;
+  const email = decoded.email;
+  const name = decoded.name;
+  const channel = decoded.channel;
+
+  const message = req.body.message;
+  
+  if ( message === undefined )
+    return res.json({
+      error: true,
+      mssg: "missing fields"
+    });
+
+  const _id = channel._id + "-" + uid;
+  const reach = [];
+  const views = [];
+  const type = "post-video";
+  const timestamp = new Date();
+  const audience = [channel._id];
+  
+  const query_data = {
+    _id,
+    reach,
+    views,
+    type,
+    timestamp,
+    channel: channel._id,
+    audience,
+    message,
+    email,
+    name
+  };
+
+  if(req.files === undefined || req.files === null || req.files.length === 0) {
+    return res.json({
+      error: true,
+      mssg: "invalid request, no files"
+    });
+  }
+  if(req.files.file === undefined) return res.json({
+    error: true,
+    mssg: "invalid request, no files"
+  });
+  console.log(req.files);
+  saveVideo(req.files.file, function(err, filename) {
+    if (err) {
+      return res.json({
+        error: true,
+        mssg: err
+      });
+    } else {
+      query_data["media"] = filename;
       dbo.collection(TABLE_ACTIVITY).insertOne(query_data, function(err) {
         if (err) {
           return res.json({

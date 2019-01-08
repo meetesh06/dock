@@ -92,6 +92,18 @@ exports.saveFiles = function(files, callback, params, folder) {
   });
 };
 
+exports.saveVideo = function(file, callback) {
+  let filename = random() + "_" + file.name;
+  var loc = __dirname + "/media/" + filename;
+  file.mv(loc, function(err) {
+    if (err) {
+      return callback(true);
+    } else {
+      callback(false, filename);
+    }
+  });
+};
+
 exports.updateScopeAsync = function(audience, type) {
   let i;
 
