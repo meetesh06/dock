@@ -15,7 +15,8 @@ const dbo = db.getDb();
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://mycampusdock-12f5a.firebaseio.com"
+  databaseURL: "https://campus-story-75039.firebaseio.com"
+  // databaseURL: "https://mycampusdock-12f5a.firebaseio.com"
 });
 
 const smtpTransport = nodemailer.createTransport({
