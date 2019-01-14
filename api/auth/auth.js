@@ -530,9 +530,6 @@ router.post("/auth/get-general-token", (req, res) => {
       data: token
     });
   });
-
-
-  
 });
 
 /* HELPERS */

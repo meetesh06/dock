@@ -201,6 +201,16 @@ exports.verifyUserToken = function(req, callback) {
   });
 };
 
+exports.verifyAnonymousToken = function(req, callback) {
+  var token = req.headers["x-access-token"];
+  if (!token) return callback(true);
+  jwt.verify(token, APP_SECRET_KEY, function(err, decoded) {
+    if (err) return callback(true);
+    if ( decoded && decoded.anonymous === true ) return callback(false, decoded);
+    return callback(true);
+  });
+};
+
 // function
 function sendToIndividual(scope, payload, retries) {
   if (retries == MAX_RETRIES_MESSAGING) {

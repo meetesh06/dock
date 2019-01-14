@@ -4,6 +4,7 @@ const actions = require("../../actions/actions");
 const db = require("../../db");
 const constants = require("../../constants");
 const verifyUserToken = actions.verifyUserToken;
+const verifyAnonymousToken = actions.verifyAnonymousToken;
 const isValidDate = actions.isValidDate;
 const TABLE_EVENTS = constants.TABLE_EVENTS;
 const TABLE_USERS = constants.TABLE_USERS;
@@ -14,7 +15,19 @@ const UID = actions.UID;
 
 /* HELPER */
 const verifyRequest = function (req, res, next) {
-  verifyUserToken(req, (err, decoded) => {
+  // verifyUserToken(req, (err, decoded) => {
+  //   if(err) {
+  //     return res.json({
+  //       error: true,
+  //       mssg: "Token Verification failed."
+  //     });
+  //   } else {
+  //     req.authorized = true;
+  //     req.decoded = decoded;
+  //   }
+  //   next();
+  // });
+  verifyAnonymousToken(req, (err, decoded) => {
     if(err) {
       return res.json({
         error: true,
