@@ -112,7 +112,6 @@ router.post("/channels/top", verifyRequestCommon, (req, res) => {
 
   let category_list = JSON.parse(cat_list);
   let channels = JSON.parse(channels_list);
-
   const query_data ={
     $project: {
       _id: 1,
@@ -124,11 +123,52 @@ router.post("/channels/top", verifyRequestCommon, (req, res) => {
       category_found : { $in : ["$category", category_list] },
       channel_already : { $in : ["$_id", channels] },
       creator : 1,
-      priority : 1
+      priority : 1,
+      college: 1
     }
   };
   const sort = { $sort : { followers : -1 }};
   const match = { $match : { category_found : true, channel_already : false }};
+  const limit = { $limit : parseInt(count)};
+
+  dbo.collection(TABLE_CHANNELS).aggregate([query_data, match, sort, limit]).toArray( (err, result) => {
+    if(err) return res.json({error : true, mssg  : err});
+    return res.json({error : false, data : result});
+  });
+});
+
+/*
+  * API end point to get top channels from all categories, channel list entries are ignored
+  * Requires (COMMON TOKEN, channel_list)
+  * Returns (results)
+*/
+router.post("/channels/all", verifyRequestCommon, (req, res) => {
+  let count = req.body.count;
+  let channels_list = req.body.channels_list;
+  if( channels_list === undefined || count === undefined || !parseInt(count) ) return res.json({
+    error: true,
+    mssg: "Invalid Request"
+  });
+
+  let channels = JSON.parse(channels_list);
+
+  console.log(parseInt(count));
+
+  const query_data ={
+    $project: {
+      _id: 1,
+      name: 1,
+      followers: { $size: "$followers" },
+      media : 1,
+      description : 1,
+      category : 1,
+      channel_already : { $in : ["$_id", channels] },
+      creator : 1,
+      priority : 1
+    }
+  };
+  const sort = { $sort : { followers : -1 }};
+  const match = { $match : { channel_already : false }};
   const limit = { $limit : parseInt(count)};
 
   dbo.collection(TABLE_CHANNELS).aggregate([query_data, match, sort, limit]).toArray( (err, result) => {

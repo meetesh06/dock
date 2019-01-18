@@ -183,7 +183,7 @@ exports.verifyCommonToken = function(req, callback) {
   jwt.verify(token, APP_SECRET_KEY, function(err, decoded) {
     if (err) return callback(true);
     if (decoded)
-      if ( decoded.manager === true || decoded.user === true ) return callback(false, decoded);
+      if ( decoded.manager === true || decoded.anonymous === true ) return callback(false, decoded);
     return callback(true);
   });
 };

@@ -90,6 +90,7 @@ router.post("/admin/create-channel", (req, res) => {
               // creator_password: creatorPassword,
               media: ["channels/"+media],
               parent: decoded.email,
+              followers: [],
               college: decoded.college
             }, function(err, data) {
               if (err) {
