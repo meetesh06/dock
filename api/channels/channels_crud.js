@@ -226,7 +226,7 @@ function fetch_activity(channel_id, last_updated, user, indx, callback){
     };
   }
 
-  dbo.collection(TABLE_ACTIVITY).find(query_data)
+  dbo.collection(TABLE_ACTIVITY).find(query_data).sort({ timestamp: -1 }).limit(30)
     .toArray((err, result) => {
       if(err) return callback({ error : true, indx, mssg : err });
       if(result.length === 0) return callback({error : false, indx, data : result});
