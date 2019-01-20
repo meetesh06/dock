@@ -4,14 +4,14 @@ const actions = require("../../actions/actions");
 const db = require("../../db");
 const constants = require("../../constants");
 const TABLE_ACTIVITY = constants.TABLE_ACTIVITY;
-const verifyUserToken = actions.verifyUserToken;
+const verifyAnonymousToken = actions.verifyAnonymousToken;
 const TABLE_USERS = constants.TABLE_USERS;
 const TABLE_CHANNELS = constants.TABLE_CHANNELS;
 const dbo = db.getDb();
 const router = express.Router();
 
 const verifyRequest = function (req, res, next) {
-  verifyUserToken(req, (err, decoded) => {
+  verifyAnonymousToken(req, (err, decoded) => {
     if(err) {
       return res.json({
         error: true,
@@ -24,6 +24,26 @@ const verifyRequest = function (req, res, next) {
     next();
   });
 };
+
+/*
+  * API end point to follow a channel, update DB with the userid
+  * Requires (TOKEN, channel_id)
+  * Returns (ACKNOWLEDGEMENT)
+*/
+router.post("/channels/update-read", verifyRequest, (req, res) => {
+  const activity_list = req.body.activity_list;
+  if( activity_list === undefined ) return res.json({
+    error: true,
+    mssg : "Invalid Request"
+  });
+  const list = JSON.parse(activity_list);
+
+  dbo.collection(TABLE_ACTIVITY).updateMany({ _id : { $in: list }  }, { "$addToSet": { "views": req.decoded } })
+    .then((err, val) => {
+      console.log(err, val);
+    });
+  
+});
 
 /*
   * API end point to follow a channel, update DB with the userid
