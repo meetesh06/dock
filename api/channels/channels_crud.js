@@ -56,10 +56,11 @@ router.post("/channels/get-activity-list", verifyRequestCommon, (req, res) => {
   * Returns (activity_list_based_on_last_popularity)
 */
 router.post("/channels/fetch-popular-activity", verifyRequestCommon, (req, res) => {
-// router.post("/channels/fetch-popular-activity", (req, res) => {
-  
-  // STUB - TODO - complete this route
-
+  const category = req.body.category;
+  if( category === undefined ) return res.json({
+    error: true,
+    mssg: "Invalid Request"
+  });
   let d = new Date();
   d.setDate(d.getDate() - 2);
   const query_data ={
@@ -81,7 +82,7 @@ router.post("/channels/fetch-popular-activity", verifyRequestCommon, (req, res) 
     }
   };
   const sort = { $sort : { views : -1 }};
-  const match = { $match : { "timestamp" : { $gte : d } }};
+  const match = { $match : { "timestamp" : { $gte : d }, "category":  category}};
 
   dbo.collection(TABLE_ACTIVITY).aggregate([query_data, match, sort ]).toArray( (err, result) => {
     console.log(err, result);

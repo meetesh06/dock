@@ -46,8 +46,10 @@ router.post("/channels/manager/create-post", verifyRequest, (req, res) => {
   const email = decoded.email;
   const name = decoded.name;
   const channel = decoded.channel;
-
+  const category = channel.category;
+  const channel_name = channel.name;
   const message = req.body.message;
+  
   if ( message === undefined )
     return res.json({
       error: true,
@@ -69,6 +71,8 @@ router.post("/channels/manager/create-post", verifyRequest, (req, res) => {
     timestamp,
     channel: channel._id,
     audience,
+    category,
+    channel_name,
     message,
     email,
     name
