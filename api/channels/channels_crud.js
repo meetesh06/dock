@@ -55,7 +55,8 @@ router.post("/channels/get-activity-list", verifyRequestCommon, (req, res) => {
   * Requires (TOKEN)
   * Returns (activity_list_based_on_last_popularity)
 */
-router.post("/channels/fetch-popular-activity", verifyRequestCommon, (req, res) => {
+// router.post("/channels/fetch-popular-activity", verifyRequestCommon, (req, res) => {
+router.post("/channels/fetch-popular-activity", (req, res) => {
   const category = req.body.category;
   if( category === undefined ) return res.json({
     error: true,
@@ -72,6 +73,7 @@ router.post("/channels/fetch-popular-activity", verifyRequestCommon, (req, res) 
       timestamp: 1,
       channel: 1,
       audience: 1,
+      category : 1,
       message: 1,
       email: 1,
       name: 1,
@@ -82,10 +84,9 @@ router.post("/channels/fetch-popular-activity", verifyRequestCommon, (req, res) 
     }
   };
   const sort = { $sort : { views : -1 }};
-  const match = { $match : { "timestamp" : { $gte : d }, "category":  category}};
+  const match = { $match : { "timestamp" : { $gte : d }, "category":  category, views : {$gte : 10}} };
 
-  dbo.collection(TABLE_ACTIVITY).aggregate([query_data, match, sort ]).toArray( (err, result) => {
-    console.log(err, result);
+  dbo.collection(TABLE_ACTIVITY).aggregate([query_data, match, sort]).toArray( (err, result) => {
     if(err) return res.json({error : true, mssg  : err});
     return res.json({error : false, data : result});
   });
@@ -193,8 +194,6 @@ router.post("/channels/all", verifyRequestCommon, (req, res) => {
   });
 
   let channels = JSON.parse(channels_list);
-
-  console.log(parseInt(count));
 
   const query_data ={
     $project: {

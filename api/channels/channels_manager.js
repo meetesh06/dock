@@ -49,7 +49,7 @@ router.post("/channels/manager/create-post", verifyRequest, (req, res) => {
   const category = channel.category;
   const channel_name = channel.name;
   const message = req.body.message;
-  
+
   if ( message === undefined )
     return res.json({
       error: true,
@@ -117,7 +117,8 @@ router.post("/channels/manager/create-image-post", verifyRequest, (req, res) => 
   const email = decoded.email;
   const name = decoded.name;
   const channel = decoded.channel;
-
+  const category = channel.category;
+  const channel_name = channel.name;
   const message = req.body.message;
   
   if ( message === undefined )
@@ -142,6 +143,8 @@ router.post("/channels/manager/create-image-post", verifyRequest, (req, res) => 
     channel: channel._id,
     audience,
     message,
+    channel_name,
+    category,
     email,
     name
   };
@@ -202,7 +205,8 @@ router.post("/channels/manager/create-video-post", verifyRequest, (req, res) => 
   const email = decoded.email;
   const name = decoded.name;
   const channel = decoded.channel;
-
+  const category = channel.category;
+  const channel_name = channel.name;
   const message = req.body.message;
   
   if ( message === undefined )
@@ -227,6 +231,8 @@ router.post("/channels/manager/create-video-post", verifyRequest, (req, res) => 
     channel: channel._id,
     audience,
     message,
+    category,
+    channel_name,
     email,
     name
   };
