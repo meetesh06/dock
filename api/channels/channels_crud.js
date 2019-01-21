@@ -50,6 +50,47 @@ router.post("/channels/get-activity-list", verifyRequestCommon, (req, res) => {
   });
 });
 
+/*
+  * API end point for getting activity list
+  * Requires (TOKEN)
+  * Returns (activity_list_based_on_last_popularity)
+*/
+router.post("/channels/fetch-popular-activity", verifyRequestCommon, (req, res) => {
+// router.post("/channels/fetch-popular-activity", (req, res) => {
+  
+  // STUB - TODO - complete this route
+
+  let d = new Date();
+  d.setDate(d.getDate() - 2);
+  const query_data ={
+    $project: {
+      _id: 1,
+      reach: { $size: "$reach" },
+      views: { $size: "$views" },
+      type: 1,
+      timestamp: 1,
+      channel: 1,
+      audience: 1,
+      message: 1,
+      email: 1,
+      name: 1,
+      media: 1,
+      options: 1,
+      poll_type: 1
+
+    }
+  };
+  const sort = { $sort : { views : -1 }};
+  const match = { $match : { "timestamp" : { $gte : d } }};
+
+  dbo.collection(TABLE_ACTIVITY).aggregate([query_data, match, sort ]).toArray( (err, result) => {
+    console.log(err, result);
+    if(err) return res.json({error : true, mssg  : err});
+    return res.json({error : false, data : result});
+  });
+
+});
+
 
 /*
   * indexing style -- db.channels.createIndex( { name: "text", description: "text", creator: "text", category: "text" } )
