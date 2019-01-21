@@ -133,6 +133,7 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
     reg_start,
     reg_end,
     date,
+    time,
     contact_details,
     faq,
     price,
