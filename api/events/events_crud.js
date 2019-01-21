@@ -64,6 +64,7 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
   const name = decoded.name;
   const college = decoded.college;
   const channel = decoded.channel;
+  const channel_name = channel.name;
 
   const _id = channel._id + "-" + uid;
   const reach = [];
@@ -129,6 +130,7 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
     description,
     location,
     category,
+    channel_name,
     tags,
     reg_start,
     reg_end,
