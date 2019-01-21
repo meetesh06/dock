@@ -81,6 +81,7 @@ router.post("/events/user/get-event-list", verifyRequest, (req, res) => {
         reg_start: 1,
         reg_end: 1,
         date: 1,
+        time: 1,
         contact_details: 1,
         faq: 1,
         price: 1,
