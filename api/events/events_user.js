@@ -134,11 +134,71 @@ router.post("/events/user/get-event-list", verifyRequest, (req, res) => {
 });
 
 /*
+  * API end point to enroll user to event
+  * Requires (TOKEN, event_id)
+  * Returns (event_data_object, UPDATES_VIEWS)
+*/
+router.post("/events/user/enroll", verifyRequest, (req, res) => {
+  
+  const decoded = req.decoded;
+  let _id = req.body._id;
+  
+  let name = req.body.name;
+  let email = req.body.email;
+  let phone = req.body.phone;
+  
+  if ( _id === undefined || name === undefined || email === undefined || phone === undefined ) return res.json({
+    error: true,
+    mssg: "missing fields"
+  });
+
+  dbo.collection(TABLE_EVENTS).update(
+    { _id },
+    { $addToSet: { "enrollees" : { decoded, name, email, phone } } }, (err, val) => {
+      if(err) return res.json({
+        error: true,
+        mssg: err
+      });
+      res.json({
+        error: false
+      });
+    });
+});
+
+/*
+  * API end point to add interested user to event
+  * Requires (TOKEN, event_id)
+  * Returns (event_data_object, UPDATES_VIEWS)
+*/
+router.post("/events/user/interested", verifyRequest, (req, res) => {
+  const decoded = req.decoded;
+  let _id = req.body._id;
+  if ( _id === undefined ) return res.json({
+    error: true,
+    mssg: "missing fields"
+  });
+
+  dbo.collection(TABLE_EVENTS).update(
+    { _id },
+    // { $addToSet: { "views" : { id, timestamp: new Date().getUTCMonth() + 1 } } }
+    { $addToSet: { "interested" : { decoded } } }, (err, val) => {
+      if(err) return res.json({
+        error: true,
+        mssg: err
+      });
+      res.json({
+        error: false
+      });
+
+    });
+});
+/*
   * API end point to fetch event data
   * Requires (TOKEN, event_id)
   * Returns (event_data_object, UPDATES_VIEWS)
 */
 router.post("/events/user/fetch-event-data", verifyRequest, (req, res) => {
+  console.log("FETCH EVENT REQUEST");
   const decoded = req.decoded;
   const id = decoded.id;
 
@@ -184,7 +244,8 @@ router.post("/events/user/fetch-event-data", verifyRequest, (req, res) => {
 
   dbo.collection(TABLE_EVENTS).update(
     { _id },
-    { $addToSet: { "views" : { id, timestamp: new Date().getUTCMonth() + 1 } } }
+    // { $addToSet: { "views" : { id, timestamp: new Date().getUTCMonth() + 1 } } }
+    { $addToSet: { "views" : { decoded } } }
   );
   
   dbo.collection(TABLE_EVENTS).aggregate([query_data, match]).toArray( (err, result) => {

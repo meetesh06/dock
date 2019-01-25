@@ -70,6 +70,7 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
   const reach = [];
   const views = [];
   const enrollees = [];
+  const interested = [];
   const timestamp = new Date();
   const audience = [];
 
@@ -124,6 +125,7 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
     _id,
     reach,
     views,
+    interested,
     enrollees,
     timestamp,
     title,
