@@ -95,11 +95,13 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
     });
   }
 
-  if(!parseInt(price))
-    return res.json({
-      error: true,
-      mssg: "invalid request 2"
-    });
+  if(!parseInt(price)) {
+    if(price !== "0") 
+      return res.json({
+        error: true,
+        mssg: "invalid request 2"
+      });
+  }
 
   if(!parseInt(available_seats))
     return res.json({
