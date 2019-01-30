@@ -139,7 +139,8 @@ router.post("/events/manager/fetch-event-data", verifyRequest, (req, res) => {
         audience: 1,
         media: 1,
         time: 1,
-        channel_name: 1
+        channel_name: 1,
+        timestamp: 1
       }
     };
   
