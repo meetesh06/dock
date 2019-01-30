@@ -138,6 +138,7 @@ router.post("/events/manager/fetch-event-data", verifyRequest, (req, res) => {
         available_seats: 1,
         audience: 1,
         media: 1,
+        name: 1,
         time: 1,
         channel_name: 1,
         timestamp: 1
