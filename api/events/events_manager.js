@@ -68,6 +68,7 @@ router.post("/events/manager/get-event-list", verifyRequest, (req, res) => {
         available_seats: 1,
         audience: 1,
         media: 1,
+        time: 1
       }
     };
   
