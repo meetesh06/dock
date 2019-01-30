@@ -142,7 +142,8 @@ router.post("/events/manager/fetch-event-data", verifyRequest, (req, res) => {
         time: 1,
         channel_name: 1,
         timestamp: 1,
-        college: 1
+        college: 1,
+        channel: 1
       }
     };
   
