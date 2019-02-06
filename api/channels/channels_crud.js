@@ -86,9 +86,11 @@ router.post("/channels/fetch-popular-activity", (req, res) => {
   const sort = { $sort : { views : -1 }};
   let match = {};
   if(category === "hottest")
-    match = { $match : { "timestamp" : { $gte : d }, views : {$gte : 10}} };
+    match = { $match : { "timestamp" : { $gte : d } } };
+    // match = { $match : { "timestamp" : { $gte : d }, views : {$gte : 10}} };
   else
-    match = { $match : { "timestamp" : { $gte : d }, "category":  category, views : {$gte : 10}} };
+    match = { $match : { "timestamp" : { $gte : d }, "category":  category } };
+    // match = { $match : { "timestamp" : { $gte : d }, "category":  category, views : {$gte : 10}} };
   dbo.collection(TABLE_ACTIVITY).aggregate([query_data, match, sort]).toArray( (err, result) => {
     if(err) return res.json({error : true, mssg  : err});
     return res.json({error : false, data : result});
