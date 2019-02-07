@@ -171,6 +171,7 @@ router.post("/channels/top", verifyRequestCommon, (req, res) => {
       category_found : { $in : ["$category", category_list] },
       channel_already : { $in : ["$_id", channels] },
       creator : 1,
+      channel_name: 1,
       priority : 1,
       college: 1
     }
