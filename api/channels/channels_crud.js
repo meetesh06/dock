@@ -79,6 +79,7 @@ router.post("/channels/fetch-popular-activity", (req, res) => {
       name: 1,
       media: 1,
       options: 1,
+      channel_name: 1,
       poll_type: 1
 
     }
@@ -171,7 +172,6 @@ router.post("/channels/top", verifyRequestCommon, (req, res) => {
       category_found : { $in : ["$category", category_list] },
       channel_already : { $in : ["$_id", channels] },
       creator : 1,
-      channel_name: 1,
       priority : 1,
       college: 1
     }
