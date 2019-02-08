@@ -87,8 +87,24 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
   const faq = req.body.faq;
   const price = req.body.price;
   const available_seats = req.body.available_seats;
+  const reg_link = req.body.reg_link;
   
-  if( title === undefined || description === undefined || location === undefined || category === undefined || faq === undefined || tags === undefined || reg_start === undefined || reg_end === undefined || date === undefined || price === undefined ||contact_details === undefined || available_seats === undefined || time === undefined) {
+  if (
+    title === undefined ||
+    description === undefined ||
+    location === undefined ||
+    category === undefined ||
+    faq === undefined ||
+    tags === undefined ||
+    reg_start === undefined ||
+    reg_end === undefined ||
+    date === undefined ||
+    price === undefined ||
+    contact_details === undefined ||
+    available_seats === undefined ||
+    time === undefined ||
+    reg_link === undefined
+  ) {
     return res.json({
       error: true,
       mssg: "invalid request 1"
@@ -145,7 +161,8 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
     price,
     available_seats,
     audience,
-    channel: decoded.channel._id.trim()
+    channel: decoded.channel._id.trim(),
+    reg_link
   };
 
   saveFiles(req.files, function(media, err) {
