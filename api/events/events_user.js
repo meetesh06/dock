@@ -78,6 +78,7 @@ router.post("/events/user/get-event-list", verifyRequest, (req, res) => {
         location: 1,
         category: 1,
         tags: 1,
+        reg_link: 1,
         reg_start: 1,
         reg_end: 1,
         date: 1,
@@ -234,6 +235,7 @@ router.post("/events/user/fetch-event-data", verifyRequest, (req, res) => {
         available_seats: 1,
         audience: 1,
         media: 1,
+        reg_link: 1,
         channel_name: 1,
         college: 1,
         name: 1
