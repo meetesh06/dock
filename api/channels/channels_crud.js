@@ -279,6 +279,7 @@ function fetch_activity(channel_id, last_updated, user, indx, callback){
       if(result.length === 0) return callback({error : false, indx, data : result});
       /* OPTIMIZE */
       result.forEach((item, index, array) => {
+        item.views = item.views.length;
         if(item.type === "poll"){
           let tup = item;
           let answer = false;
