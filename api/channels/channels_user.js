@@ -207,6 +207,44 @@ router.post("/channels/user/fetch-channel-data", verifyRequest, (req, res) => {
 });
 
 
+/*
+  * API end point to fetch event data
+  * Requires (TOKEN, event_id)
+  * Returns (event_data_object, UPDATES_VIEWS)
+*/
+router.post("/channels/user/fetch-channel-data", verifyRequest, (req, res) => {
+  let _id = req.body._id;
+  if ( _id === undefined ) return res.json({
+    error: true,
+    mssg: "missing fields"
+  });
+
+  const query_data ={
+    $project: {
+      _id: 1,
+      name: 1,
+      followers: { $size: "$followers" },
+      media : 1,
+      description : 1,
+      category : 1,
+      // category_found : { $in : ["$category", category_list] },
+      // channel_already : { $in : ["$_id", channels] },
+      creator : 1,
+      priority : 1,
+      college: 1
+    }
+  };
+  // const sort = { $sort : { followers : -1 }};
+  const match = { $match : { _id }};
+  // const limit = { $limit : parseInt(count)};
+
+  dbo.collection(TABLE_CHANNELS).aggregate([query_data, match]).toArray( (err, result) => {
+    if(err) return res.json({error : true, mssg  : err});
+    return res.json({error : false, data : result});
+  });
+});
+
+
 router.post("/channels/user/fetch-college-channels", verifyRequest, (req, res) => {
   const decoded = req.decoded;
   const id = decoded.id;

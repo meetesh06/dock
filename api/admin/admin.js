@@ -6,15 +6,15 @@ const bodyParser = require("body-parser");
 const db = require("../../db");
 const dbo = db.getDb();
 const router = express.Router();
-const { ObjectId } = require('mongodb'); // or ObjectID 
+const { ObjectId } = require("mongodb");
 const verifySuperToken = actions.verifySuperToken;
 const TABLE_CHANNELS = constants.TABLE_CHANNELS;
 const TABLE_CATEGORIES = constants.TABLE_CATEGORIES;
 const TABLE_USERS_ADMIN = constants.TABLE_USERS_ADMIN;
 const passwordHash = require("password-hash");
-
 const saveFiles = actions.saveFiles;
 const UID = actions.UID;
+const helpers = require("../functions/functions");
 
 router.use(bodyParser.json());
 router.use(bodyParser.urlencoded({ extended: true }));
@@ -31,8 +31,6 @@ router.post("/admin/create-channel", (req, res) => {
     error: true,
     mssg: "missing fields"
   });
-  // console.log(req.body);
-  // console.log(req.files);
   verifySuperToken(req, (err, decoded) => {
     if(err) {
       return res.json({
@@ -49,7 +47,7 @@ router.post("/admin/create-channel", (req, res) => {
       const creatorName = req.body.creatorName;
       const creatorEmail = req.body.creatorEmail;
       const creatorPassword = req.body.creatorPassword;
-      if(name === undefined || description === undefined || private === undefined || official === undefined || category === undefined || creatorName === undefined || creatorEmail === undefined || creatorPassword === undefined) return res.json({
+      if(helpers.isUndefined([name, description, private, official, category, creatorName, creatorEmail, creatorPassword]))return res.json({
         error: true,
         mssg: "missing fields"
       });
@@ -72,7 +70,7 @@ router.post("/admin/create-channel", (req, res) => {
             college: decoded.college,
             channel_id: id,
             authority: 0
-          }, (err, data) => {
+          }, (err) => {
             if(err) return res.json({
               error: true,
               mssg: err.message
@@ -87,12 +85,14 @@ router.post("/admin/create-channel", (req, res) => {
               creator: creatorName,
               created_on: new Date(),
               creator_email: creatorEmail,
-              // creator_password: creatorPassword,
               media: ["channels/"+media],
               parent: decoded.email,
               followers: [],
+              channel_visits : 0,
+              story_views : 0,
+              last_updated : new Date(),
               college: decoded.college
-            }, function(err, data) {
+            }, function(err) {
               if (err) {
                 return res.json({
                   error: true,
@@ -116,9 +116,7 @@ router.post("/admin/update-channel", (req, res) => {
     error: true,
     mssg: "missing fields"
   });
-  console.log(req.body);
-  console.log(req.files);
-  verifySuperToken(req, (err, decoded) => {
+  verifySuperToken(req, (err) => {
     if(err) {
       return res.json({
         error: true,
@@ -135,13 +133,13 @@ router.post("/admin/update-channel", (req, res) => {
         mssg: "missing fields"
       });
       if(creatorPassword !== "") {
-        dbo.collection(TABLE_USERS_ADMIN).updateOne({ channel_id: _id }, { $set:{ password: passwordHash.generate(creatorPassword) } }, (err, data) => {
+        dbo.collection(TABLE_USERS_ADMIN).updateOne({ channel_id: _id }, { $set:{ password: passwordHash.generate(creatorPassword) } }, (err) => {
           if(err) return res.json({
             error: true,
             mssg: err
           });
           if(req.files === undefined || req.files === null || req.files.length === 0) {
-            dbo.collection(TABLE_CHANNELS).updateOne({ _id: ObjectId(_id) }, { $set:{ name, description } }, (err, data) => {
+            dbo.collection(TABLE_CHANNELS).updateOne({ _id: ObjectId(_id) }, { $set:{ name, description } }, (err) => {
               if (err) {
                 return res.json({
                   error: true,
@@ -155,7 +153,6 @@ router.post("/admin/update-channel", (req, res) => {
             });
           } else {
             saveFiles(req.files, function(media, err) {
-              console.log(media);
               if (err) {
                 return res.json({
                   error: true,
@@ -163,7 +160,7 @@ router.post("/admin/update-channel", (req, res) => {
                 });
               } else {
                 
-                dbo.collection(TABLE_CHANNELS).update({ _id: ObjectId(_id) }, { $set:{ name, description, creator_password: creatorPassword, media: ["channels/"+media] } }, { upsert: false }, (err, data) => {
+                dbo.collection(TABLE_CHANNELS).update({ _id: ObjectId(_id) }, { $set:{ name, description, creator_password: creatorPassword, media: ["channels/"+media] } }, { upsert: false }, (err) => {
                   if (err) {
                     return res.json({
                       error: true,
@@ -181,7 +178,7 @@ router.post("/admin/update-channel", (req, res) => {
         });
       } else {
         if(req.files === undefined || req.files === null || req.files.length === 0) {
-          dbo.collection(TABLE_CHANNELS).updateOne({ _id }, { $set:{ name, description } }, (err, data) => {
+          dbo.collection(TABLE_CHANNELS).updateOne({ _id }, { $set:{ name, description } }, (err) => {
             if (err) {
               return res.json({
                 error: true,
@@ -195,15 +192,13 @@ router.post("/admin/update-channel", (req, res) => {
           });
         } else {
           saveFiles(req.files, function(media, err) {
-            console.log(media);
             if (err) {
               return res.json({
                 error: true,
                 mssg: err
               });
             } else {
-              console.log("channels/"+media);
-              dbo.collection(TABLE_CHANNELS).update({ _id }, { $set:{ name, description, creator_password: creatorPassword, media: ["channels/"+media] } }, { upsert: false }, (err, data) => {
+              dbo.collection(TABLE_CHANNELS).update({ _id }, { $set:{ name, description, creator_password: creatorPassword, media: ["channels/"+media] } }, { upsert: false }, (err) => {
                 if (err) {
                   return res.json({
                     error: true,
@@ -235,7 +230,7 @@ router.post("/admin/get-categories", (req, res) => {
     error: true,
     mssg: "missing fields"
   });
-  verifySuperToken(req, (err, decoded) => {
+  verifySuperToken(req, (err) => {
     if(err) {
       return res.json({
         error: true,

@@ -8,6 +8,7 @@ const constants = require("../../constants");
 const passwordHash = require("password-hash");
 const TABLE_ACTIVITY = constants.TABLE_ACTIVITY;
 const TABLE_USERS_ADMIN = constants.TABLE_USERS_ADMIN;
+const TABLE_CHANNELS = constants.TABLE_CHANNELS;
 const verifyManagerToken = actions.verifyManagerToken;
 const updateScopeAsync = actions.updateScopeAsync;
 const sendToScope = actions.sendToScope;
@@ -86,23 +87,33 @@ router.post("/channels/manager/create-post", verifyRequest, (req, res) => {
       });
     }
 
-    res.status(200).json({
-      error: false,
-      mssg: "Success"
-    });
-
-    updateScopeAsync(audience, 1);
-    const payload = {
-      data: {
-        type: "post",
-        content: JSON.stringify(query_data)
-      },
-      notification : {
-        body : "Tap to know more | Dock",
-        title : ""+query_data["message"]
+    updateChannel(channel._id, (err, err_mssg)=>{
+      if(!err){
+        res.status(200).json({
+          error: false,
+          mssg: "Success"
+        });
+  
+        updateScopeAsync(audience, 1);
+        const payload = {
+          data: {
+            type: "post",
+            content: JSON.stringify(query_data)
+          },
+          notification : {
+            body : "Tap to know more | Campus Story",
+            title : ""+query_data["message"]
+          }
+        };
+        sendToScope(query_data["audience"], payload);
       }
-    };
-    sendToScope(query_data["audience"], payload);
+      else {
+        res.status(200).json({
+          error: true,
+          mssg: err_mssg
+        });
+      }
+    });
   });
 });
 
@@ -172,23 +183,32 @@ router.post("/channels/manager/create-image-post", verifyRequest, (req, res) => 
           });
         }
     
-        res.status(200).json({
-          error: false,
-          mssg: "Success"
-        });
-    
-        updateScopeAsync(audience, 1);
-        const payload = {
-          data: {
-            type: "post",
-            content: JSON.stringify(query_data)
-          },
-          notification : {
-            body : "Tap to know more | Dock",
-            title : ""+query_data["message"]
+        updateChannel(channel._id, (err, err_mssg)=>{
+          if(!err){
+            res.status(200).json({
+              error: false,
+              mssg: "Success"
+            });
+        
+            updateScopeAsync(audience, 1);
+            const payload = {
+              data: {
+                type: "post",
+                content: JSON.stringify(query_data)
+              },
+              notification : {
+                body : "Tap to know more | Campus Story",
+                title : ""+query_data["message"]
+              }
+            };
+            sendToScope(query_data["audience"], payload);
+          } else {
+            res.status(200).json({
+              error: true,
+              mssg: err_mssg
+            });
           }
-        };
-        sendToScope(query_data["audience"], payload);
+        });
       });
     }
   });
@@ -247,7 +267,7 @@ router.post("/channels/manager/create-video-post", verifyRequest, (req, res) => 
     error: true,
     mssg: "invalid request, no files"
   });
-  console.log(req.files);
+
   saveVideo(req.files.file, function(err, filename) {
     if (err) {
       return res.json({
@@ -264,23 +284,32 @@ router.post("/channels/manager/create-video-post", verifyRequest, (req, res) => 
           });
         }
     
-        res.status(200).json({
-          error: false,
-          mssg: "Success"
-        });
-    
-        updateScopeAsync(audience, 1);
-        const payload = {
-          data: {
-            type: "post",
-            content: JSON.stringify(query_data)
-          },
-          notification : {
-            body : "Tap to know more | Dock",
-            title : ""+query_data["message"]
+        updateChannel(channel._id, (err, err_mssg)=>{
+          if(!err){
+            res.status(200).json({
+              error: false,
+              mssg: "Success"
+            });
+        
+            updateScopeAsync(audience, 1);
+            const payload = {
+              data: {
+                type: "post",
+                content: JSON.stringify(query_data)
+              },
+              notification : {
+                body : "Tap to know more | Campus Story",
+                title : ""+query_data["message"]
+              }
+            };
+            sendToScope(query_data["audience"], payload);
+          } else {
+            res.status(200).json({
+              error: true,
+              mssg: err_mssg
+            });
           }
-        };
-        sendToScope(query_data["audience"], payload);
+        });
       });
     }
   });
@@ -363,7 +392,7 @@ router.post("/channels/manager/create-poll", verifyRequest, (req, res) => {
         content: JSON.stringify(query_data)
       },
       notification : {
-        body : "Tap to know more | Dock",
+        body : "Tap to know more | Campus Story",
         title : ""+query_data["message"]
       }
     };
@@ -452,5 +481,37 @@ router.post("/channels/manager/add-member", verifyRequest, (req, res) => {
     });
   });
 });
+
+/*
+  * Function to update channel with new timestamp & last updates.
+*/
+function updateChannel(_id, callback){
+  dbo.collection(TABLE_CHANNELS).findOne({ _id}, (err, result)=>{
+    if(!err){
+      const last_updated = result.last_updated === undefined ? new Date() : result.last_updated;
+      let ts = last_updated.getTime() / 1000;
+      let cs = new Date().getTime() / 1000;
+      let diff = (22 * 3600) - (cs - ts);
+      let channel_visits, story_views;
+      if(diff > 0){
+        channel_visits = result.channel_visits === undefined ? 0 : result.channel_visits;
+        story_views = result.story_views === undefined ? 0 : result.story_views;
+      } else {
+        channel_visits = 0;
+        story_views = 0;
+      }
+      dbo.collection(TABLE_CHANNELS).update({ _id}, { $set : { channel_visits, story_views, last_updated : new Date()} }, (err_r) => {
+        if(!err_r){
+          callback(false, null);
+        } else {
+          callback(true, err_r);
+        }
+      });
+    }
+    else {
+      callback(true, err);
+    }
+  });
+}
 
 module.exports = router;
