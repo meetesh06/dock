@@ -11,6 +11,7 @@ module.exports = Object.freeze({
   TABLE_ACTIVITY : "activities",
   TABLE_USERS_ADMIN : "users_admin",
   TABLE_SUPER_ADMIN : "super_admin",
+  TABLE_NOTIFICATIONS : "notifications",
   TABLE_CATEGORIES : "categories",
   TABLE_USER_ACTIVITY : "user_activities",
   TABLE_USER_ANALYTICS : "user_analytics",

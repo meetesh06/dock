@@ -17,7 +17,8 @@ db.connectToServer( function( err ) {
     console.log("Unable to connect to MongoDB.");
     process.exit(1);
   } else {
-
+    const notifications_manager = require("./api/notifications/notifications_manager");
+    const notifications_user = require("./api/notifications/notifications_user");
     const events_crud = require("./api/events/events_crud");
     const events_user = require("./api/events/events_user");
     const events_manager = require("./api/events/events_manager");
@@ -48,6 +49,8 @@ db.connectToServer( function( err ) {
     app.use("/", manager);
     app.use("/", others);
     app.use("/", admin);
+    app.use("/", notifications_manager);
+    app.use("/", notifications_user);
 
     app.use("/admin", router);
     
