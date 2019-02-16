@@ -1,4 +1,6 @@
 *.JPG
+*.jpeg
 *.jpg
+*.png
 *.webp
 node_modules/

@@ -12,14 +12,15 @@ const constants = require("../../constants");
 const passwordHash = require("password-hash");
 const verifyManagerToken = actions.verifyManagerToken;
 const verifySuperToken = actions.verifySuperToken;
+const verifyCommonToken = actions.verifyCommonToken;
 const TABLE_CHANNELS = constants.TABLE_CHANNELS;
 const TABLE_USERS_ADMIN = constants.TABLE_USERS_ADMIN;
+const TABLE_USERS = constants.TABLE_USERS;
 const TABLE_TOKENS = constants.TABLE_TOKENS;
 const TABLE_SUPER_ADMIN = constants.TABLE_SUPER_ADMIN;
 const dbo = db.getDb();
 const router = express.Router();
 
-const UID = actions.UID;
 router.use(bodyParser.json());
 router.use(bodyParser.urlencoded({ extended: true }));
 
@@ -272,43 +273,145 @@ router.post("/auth/super/signin", (req, res) => {
 router.post("/auth/get-general-token", (req, res) => {
   if (!req.body) return res.json({
     error: true,
-    mssg: "missing fields"
+    mssg: "invalid request"
   });
 
   const college = req.body.college;
   const interests = req.body.interests;
   const others = req.body.others;
+  const _id = req.body.id;
 
   if( college === undefined || interests === undefined || others === undefined ) return res.json({
     error: true,
-    mssg: "missing fields"
+    mssg: "invalid request"
   });
-  const token_payload = {
-    id: UID(10),
-    college,
-    interests,
-    others,
-    anonymous: true
-  };
-  jwt.sign(token_payload, APP_SECRET_KEY, { expiresIn: "100d" }, function(err, token) {
+
+  dbo.collection(TABLE_USERS).findOne({_id}, (err, result)=>{
+    if(err){
+      return res.json({
+        error: true,
+        mssg : err
+      });
+    } else {
+      if(result){
+        return res.json({
+          error: false,
+          data : result,
+          exists : true
+        });
+      } else {
+        const token_payload = {
+          id : _id,
+          college,
+          interests,
+          others,
+          anonymous: true
+        };
+        jwt.sign(token_payload, APP_SECRET_KEY, { expiresIn: "100d" }, function(err, token) {
+          if(err) {
+            return res.json({
+              error: true,
+              mssg: err
+            });
+          } else {
+            const params = {
+              _id,
+              college,
+              interests,
+              others,
+              token
+            };
+            dbo.collection(TABLE_USERS).replaceOne({_id}, params, {upsert: true}, function(err) {
+              if(err){
+                return res.json({
+                  error: true,
+                  mssg: err
+                });
+              }
+              return res.json({
+                error: false,
+                data : token
+              });
+            });
+          }
+        });
+      }
+    }
+  });
+});
+
+router.post("/auth/reset-user", (req, res) => {
+  if (!req.body) return res.json({
+    error: true,
+    mssg: "invalid request"
+  });
+
+  verifyCommonToken(req, (err, decoded) => {
     if(err) {
       return res.json({
         error: true,
-        mssg: "error signing token"
+        mssg: "Token Verification failed."
+      });
+    } 
+    else {
+      const college = req.body.college;
+      const interests = req.body.interests;
+      const others = req.body.others;
+      const _id = req.body.id;
+
+      if(decoded.id !== _id){ /* Not a same user misleading token sent*/
+        return res.json({
+          error: true,
+          mssg: "Token Verification failed."
+        });
+      }
+
+      if( college === undefined || interests === undefined || others === undefined ) 
+        return res.json({
+          error: true,
+          mssg: "invalid request"
+        });
+
+      const token_payload = {
+        id : _id,
+        college,
+        interests,
+        others,
+        anonymous: true
+      };
+      jwt.sign(token_payload, APP_SECRET_KEY, { expiresIn: "100d" }, function(err, token) {
+        if(err) {
+          return res.json({
+            error: true,
+            mssg: err
+          });
+        } else {
+          const params = {
+            _id,
+            college,
+            interests,
+            others,
+            token
+          };
+          dbo.collection(TABLE_USERS).replaceOne({_id}, params, {upsert: true}, function(err) {
+            if(err){
+              return res.json({
+                error: true,
+                mssg: err
+              });
+            }
+            return res.json({
+              error: false,
+              data : token
+            });
+          });
+        }
       });
     }
-    saveToken(token, (err, err_mssg)=>{
-      if(!err) return res.json({
-        error: false,
-        data : token
-      });
-      else return res.json({
-        error: true,
-        mssg : err_mssg
-      });
-    });
   });
 });
+
+
 
 /* SAVE ANY ISSUED TOKEN TO DB */
 function saveToken(token, callback){
