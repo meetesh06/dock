@@ -42,7 +42,50 @@ router.post("/channels/update-read", verifyRequest, (req, res) => {
     .then((err, val) => {
       console.log(err, val);
     });
-  
+});
+
+/*
+  * API end point to update story views
+  * Requires (TOKEN, array of channels) [{_id : 'something', count : 5}]
+  * Returns (ACKNOWLEDGEMENT)
+*/
+router.post("/channels/update-story-views", verifyRequest, (req, res) => {
+  const views = req.body.views;
+  if(views === undefined ) 
+    return res.json({
+      error: true,
+      mssg : "Invalid Request"
+    });
+
+  for(var i=0; i<views.length; i++){
+    updateField("story_views", views[i]._id, views[i].count);
+  }
+
+  return res.json({
+    error : false
+  });
+});
+
+/*
+  * API end point to follow a channel, update DB with the userid
+  * Requires (TOKEN, channel_id)
+  * Returns (ACKNOWLEDGEMENT)
+*/
+router.post("/channels/update-channel-visits", verifyRequest, (req, res) => {
+  const visits = req.body.visits;
+  if(visits === undefined ) 
+    return res.json({
+      error: true,
+      mssg : "Invalid Request"
+    });
+
+  for(var i=0; i<visits.length; i++){
+    updateField("channel_visits", visits[i]._id, visits[i].count);
+  }
+
+  return res.json({
+    error : false
+  });
 });
 
 /*
@@ -53,29 +96,39 @@ router.post("/channels/update-read", verifyRequest, (req, res) => {
 router.post("/channels/user/follow", verifyRequest, (req, res) => {
   const decoded = req.decoded;
   const id = decoded.id;
-  const email = decoded.email;
   const channel_id = req.body.channel_id;
+  const hash = req.body.hash;
 
+  if(channel_id === undefined ) 
+    return res.json({
+      error: true,
+      mssg : "Invalid Request"
+    });
   dbo.collection(TABLE_CHANNELS).findOne({ _id : channel_id}, (err, result)=>{
     if(result){
-      if(result.private){ /* add to requested fields */
-        dbo.collection(TABLE_CHANNELS).update({ _id : channel_id }, { $addToSet: { requests : id }  }, () => {
-          dbo.collection(TABLE_USERS).update({ email }, { $addToSet: { requested_channels : channel_id }  }, (err) => {
-            if(err) 
-              return res.json({
-                error: true,
-                mssg : err
-              });
+      if(result.private){
+        dbo.collection(TABLE_CHANNELS).findOne({ _id : channel_id, hash}, (err)=>{
+          if(err) 
             return res.json({
-              error : false,
-              requested : true,
-              mssg : "success"
+              error: true,
+              mssg : err
+            });
+          dbo.collection(TABLE_CHANNELS).update({ _id : channel_id }, { $addToSet: { followers : id }  }, () => {
+            dbo.collection(TABLE_USERS).update({ _id : id }, { $addToSet: { followed_channels : channel_id }  }, (err) => {
+              if(err) 
+                return res.json({
+                  error: true,
+                  mssg : err
+                });
+              return res.json({
+                error : false,
+              });
             });
           });
         });
       } else {
         dbo.collection(TABLE_CHANNELS).update({ _id : channel_id }, { $addToSet: { followers : id }  }, () => {
-          dbo.collection(TABLE_USERS).update({ email }, { $addToSet: { followed_channels : channel_id }  }, (err) => {
+          dbo.collection(TABLE_USERS).update({ _id : id }, { $addToSet: { followed_channels : channel_id }  }, (err) => {
             if(err) 
               return res.json({
                 error: true,
@@ -83,8 +136,6 @@ router.post("/channels/user/follow", verifyRequest, (req, res) => {
               });
             return res.json({
               error : false,
-              requested : false,
-              mssg : "success"
             });
           });
         });
@@ -105,7 +156,6 @@ router.post("/channels/user/follow", verifyRequest, (req, res) => {
 router.post("/channels/user/unfollow", verifyRequest, (req, res) => {
   const decoded = req.decoded;
   const id = decoded.id;
-  const email = decoded.email;
   const channel_id = req.body.channel_id;
 
   dbo.collection(TABLE_CHANNELS).findOne({ _id : channel_id}, (err, result)=>{
@@ -113,7 +163,7 @@ router.post("/channels/user/unfollow", verifyRequest, (req, res) => {
       dbo.collection(TABLE_CHANNELS).update({ _id : channel_id }, { $pull: { followers : id }  }, (err) => {
         console.log(err);
       });
-      dbo.collection(TABLE_USERS).update({ email }, { $pull: { followed_channels : channel_id }  }, (err) => {
+      dbo.collection(TABLE_USERS).update({ _id : id }, { $pull: { followed_channels : channel_id }  }, (err) => {
         if(err) 
           return res.json({
             error: true,
@@ -121,7 +171,6 @@ router.post("/channels/user/unfollow", verifyRequest, (req, res) => {
           });
         return res.json({
           error : false,
-          mssg : "success"
         });
       });
     } else {
@@ -174,7 +223,6 @@ router.post("/channels/user/fetch-channel", verifyRequest, (req, res) => {
   * Returns (event_data_object, UPDATES_VIEWS)
 */
 router.post("/channels/user/fetch-channel-data", verifyRequest, (req, res) => {
-  // console.log("FETCH CHANNEL REQUEST");
   let _id = req.body._id;
   if ( _id === undefined ) return res.json({
     error: true,
@@ -189,16 +237,13 @@ router.post("/channels/user/fetch-channel-data", verifyRequest, (req, res) => {
       media : 1,
       description : 1,
       category : 1,
-      // category_found : { $in : ["$category", category_list] },
-      // channel_already : { $in : ["$_id", channels] },
       creator : 1,
       priority : 1,
+      private : 1,
       college: 1
     }
   };
-  // const sort = { $sort : { followers : -1 }};
   const match = { $match : { _id }};
-  // const limit = { $limit : parseInt(count)};
 
   dbo.collection(TABLE_CHANNELS).aggregate([query_data, match]).toArray( (err, result) => {
     if(err) return res.json({error : true, mssg  : err});
@@ -385,5 +430,9 @@ router.post("/channels/user/answer-poll", verifyRequest, (req, res) => {
     });
   });
 });
+
+function updateField(field, _id, count){
+  dbo.collection(TABLE_CHANNELS).update({ _id }, { "$inc": {[field] : count} });
+}
 
 module.exports = router;
