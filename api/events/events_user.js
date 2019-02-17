@@ -3,11 +3,11 @@ const express = require("express");
 const actions = require("../../actions/actions");
 const db = require("../../db");
 const constants = require("../../constants");
-const verifyUserToken = actions.verifyUserToken;
 const verifyAnonymousToken = actions.verifyAnonymousToken;
 const isValidDate = actions.isValidDate;
 const TABLE_EVENTS = constants.TABLE_EVENTS;
 const TABLE_USERS = constants.TABLE_USERS;
+const TABLE_TREDNING_EVENTS = constants.TABLE_TRENDING_EVENTS;
 const TABLE_PAYMENTS = constants.TABLE_PAYMENTS;
 const dbo = db.getDb();
 const router = express.Router();
@@ -94,7 +94,7 @@ router.post("/events/user/get-event-list", verifyRequest, (req, res) => {
   
   const match = { 
     $match: {
-      $and: [ 
+      $and: [
         { college }
       ]
     }
@@ -155,7 +155,7 @@ router.post("/events/user/enroll", verifyRequest, (req, res) => {
 
   dbo.collection(TABLE_EVENTS).update(
     { _id },
-    { $addToSet: { "enrollees" : { decoded, name, email, phone } } }, (err, val) => {
+    { $addToSet: { "enrollees" : { decoded, name, email, phone } } }, (err) => {
       if(err) return res.json({
         error: true,
         mssg: err
@@ -181,8 +181,7 @@ router.post("/events/user/interested", verifyRequest, (req, res) => {
 
   dbo.collection(TABLE_EVENTS).update(
     { _id },
-    // { $addToSet: { "views" : { id, timestamp: new Date().getUTCMonth() + 1 } } }
-    { $addToSet: { "interested" : { decoded } } }, (err, val) => {
+    { $addToSet: { "interested" : { decoded } } }, (err) => {
       if(err) return res.json({
         error: true,
         mssg: err
@@ -190,9 +189,38 @@ router.post("/events/user/interested", verifyRequest, (req, res) => {
       res.json({
         error: false
       });
-
     });
 });
+
+router.post("/events/user/fetch-trending", verifyRequest, (req, res) => {
+  const query_data =
+    {
+      $project: {
+        _id: 1,
+        title: 1,
+        channel : 1, 
+        date: 1,
+        media: 1,
+        validity : 1,
+        channel_name: 1,
+        college: 1
+      }
+    };
+  const match = { $match : { validity : { $gte : new Date()}}};
+  dbo.collection(TABLE_TREDNING_EVENTS).aggregate([query_data, match]).toArray((err, result)=>{
+    if(err){
+      return res.json({
+        error : true,
+        mssg : err
+      });
+    }
+    return res.json({
+      error : false,
+      data : result
+    });
+  });
+});
+
 /*
   * API end point to fetch event data
   * Requires (TOKEN, event_id)
