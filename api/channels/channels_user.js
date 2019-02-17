@@ -432,6 +432,7 @@ router.post("/channels/user/answer-poll", verifyRequest, (req, res) => {
 });
 
 function updateField(field, _id, count){
+  console.log(_id, field, count);
   dbo.collection(TABLE_CHANNELS).update({ _id }, { "$inc": {[field] : count} });
 }
 
