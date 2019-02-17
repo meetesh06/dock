@@ -33,15 +33,16 @@ const verifyRequest = function (req, res, next) {
 router.post("/channels/update-read", verifyRequest, (req, res) => {
   const activity_list = req.body.activity_list;
   if( activity_list === undefined ) return res.json({
-    error: true,
+    error : true,
     mssg : "Invalid Request"
   });
   const list = JSON.parse(activity_list);
 
-  dbo.collection(TABLE_ACTIVITY).updateMany({ _id : { $in: list }  }, { "$addToSet": { "views": req.decoded } })
-    .then((err, val) => {
-      console.log(err, val);
+  dbo.collection(TABLE_ACTIVITY).updateMany({ _id : { $in: list }  }, { "$addToSet": { "views": req.decoded } }, ()=>{
+    return res.json({
+      error : false
     });
+  });
 });
 
 /*
@@ -50,14 +51,13 @@ router.post("/channels/update-read", verifyRequest, (req, res) => {
   * Returns (ACKNOWLEDGEMENT)
 */
 router.post("/channels/update-story-views", verifyRequest, (req, res) => {
-  const views = req.body.views;
-  console.log(views);
-  if(views === undefined ) 
+  const views_array = req.body.views;
+  if(views_array === undefined ) 
     return res.json({
       error: true,
       mssg : "Invalid Request"
     });
-
+  let views = JSON.parse(views_array);
   for(var i=0; i<views.length; i++){
     updateField("story_views", views[i]._id, views[i].count);
   }
@@ -73,13 +73,14 @@ router.post("/channels/update-story-views", verifyRequest, (req, res) => {
   * Returns (ACKNOWLEDGEMENT)
 */
 router.post("/channels/update-channel-visits", verifyRequest, (req, res) => {
-  const visits = req.body.visits;
-  if(visits === undefined ) 
+  const visits_array = req.body.visits;
+  if(visits_array === undefined ) 
     return res.json({
       error: true,
       mssg : "Invalid Request"
     });
-
+    
+  let visits = JSON.parse(visits_array);
   for(var i=0; i<visits.length; i++){
     updateField("channel_visits", visits[i]._id, visits[i].count);
   }
@@ -258,37 +259,37 @@ router.post("/channels/user/fetch-channel-data", verifyRequest, (req, res) => {
   * Requires (TOKEN, event_id)
   * Returns (event_data_object, UPDATES_VIEWS)
 */
-router.post("/channels/user/fetch-channel-data", verifyRequest, (req, res) => {
-  let _id = req.body._id;
-  if ( _id === undefined ) return res.json({
-    error: true,
-    mssg: "missing fields"
-  });
+// router.post("/channels/user/fetch-channel-data", verifyRequest, (req, res) => {
+//   let _id = req.body._id;
+//   if ( _id === undefined ) return res.json({
+//     error: true,
+//     mssg: "missing fields"
+//   });
 
-  const query_data ={
-    $project: {
-      _id: 1,
-      name: 1,
-      followers: { $size: "$followers" },
-      media : 1,
-      description : 1,
-      category : 1,
-      // category_found : { $in : ["$category", category_list] },
-      // channel_already : { $in : ["$_id", channels] },
-      creator : 1,
-      priority : 1,
-      college: 1
-    }
-  };
-  // const sort = { $sort : { followers : -1 }};
-  const match = { $match : { _id }};
-  // const limit = { $limit : parseInt(count)};
+//   const query_data ={
+//     $project: {
+//       _id: 1,
+//       name: 1,
+//       followers: { $size: "$followers" },
+//       media : 1,
+//       description : 1,
+//       category : 1,
+//       // category_found : { $in : ["$category", category_list] },
+//       // channel_already : { $in : ["$_id", channels] },
+//       creator : 1,
+//       priority : 1,
+//       college: 1
+//     }
+//   };
+//   // const sort = { $sort : { followers : -1 }};
+//   const match = { $match : { _id }};
+//   // const limit = { $limit : parseInt(count)};
 
-  dbo.collection(TABLE_CHANNELS).aggregate([query_data, match]).toArray( (err, result) => {
-    if(err) return res.json({error : true, mssg  : err});
-    return res.json({error : false, data : result});
-  });
-});
+//   dbo.collection(TABLE_CHANNELS).aggregate([query_data, match]).toArray( (err, result) => {
+//     if(err) return res.json({error : true, mssg  : err});
+//     return res.json({error : false, data : result});
+//   });
+// });
 
 
 router.post("/channels/user/fetch-college-channels", verifyRequest, (req, res) => {
@@ -433,10 +434,8 @@ router.post("/channels/user/answer-poll", verifyRequest, (req, res) => {
 });
 
 function updateField(field, _id, count){
-  console.log(_id, field, count);
-  dbo.collection(TABLE_CHANNELS).update({ _id }, { "$inc": {[field] : count}}, (err, res)=>{
-    console.log(err);
-  });
+  dbo.collection(TABLE_CHANNELS).update({ _id }, { "$inc": {[field] : count}});
+  return;
 }
 
 module.exports = router;
