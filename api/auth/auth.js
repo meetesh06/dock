@@ -17,6 +17,8 @@ const TABLE_CHANNELS = constants.TABLE_CHANNELS;
 const TABLE_USERS_ADMIN = constants.TABLE_USERS_ADMIN;
 const TABLE_USERS = constants.TABLE_USERS;
 const TABLE_TOKENS = constants.TABLE_TOKENS;
+const TABLE_LOGS = constants.TABLE_LOGS;
+const TABLE_TRACKS = constants.TABLE_TRACKS;
 const TABLE_SUPER_ADMIN = constants.TABLE_SUPER_ADMIN;
 const dbo = db.getDb();
 const router = express.Router();
@@ -406,6 +408,83 @@ router.post("/auth/reset-user", (req, res) => {
             });
           });
         }
+      });
+    }
+  });
+});
+
+
+router.post("/auth/put-logs", (req, res) => {
+  if (!req.body) return res.json({
+    error: true,
+    mssg: "invalid request"
+  });
+  const timestamp = new Date();
+  const session_id = req.body.session_id;
+  const logs_array = req.body.logs;
+
+  if(session_id === undefined || logs_array === undefined){
+    return res.json({
+      error : true,
+      mssg : "invalid request"
+    });
+  }
+  verifyCommonToken(req, (err) => {
+    if(err) {
+      return res.json({
+        error: true,
+        mssg: "Token Verification failed."
+      });
+    }
+    else {
+      let logs;
+      try{
+        logs = JSON.parse(logs_array);
+      }
+      catch(e){
+        console.log(e);
+      }
+      dbo.collection(TABLE_LOGS).insertOne({timestamp, session_id, logs});
+      return res.json({
+        error : false
+      });
+    }
+  });
+});
+
+router.post("/auth/put-tracks", (req, res) => {
+  if (!req.body) return res.json({
+    error: true,
+    mssg: "invalid request"
+  });
+  const timestamp = new Date();
+  const session_id = req.body.session_id;
+  const logs_array = req.body.logs;
+
+  if(session_id === undefined || logs_array === undefined){
+    return res.json({
+      error : true,
+      mssg : "invalid request"
+    });
+  }
+  verifyCommonToken(req, (err) => {
+    if(err) {
+      return res.json({
+        error: true,
+        mssg: "Token Verification failed."
+      });
+    }
+    else {
+      let logs;
+      try{
+        logs = JSON.parse(logs_array);
+      }
+      catch(e){
+        console.log(e);
+      }
+      dbo.collection(TABLE_TRACKS).insertOne({timestamp, session_id, logs});
+      return res.json({
+        error : false
       });
     }
   });
