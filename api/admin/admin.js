@@ -11,6 +11,8 @@ const verifySuperToken = actions.verifySuperToken;
 const TABLE_CHANNELS = constants.TABLE_CHANNELS;
 const TABLE_CATEGORIES = constants.TABLE_CATEGORIES;
 const TABLE_USERS_ADMIN = constants.TABLE_USERS_ADMIN;
+const TABLE_TRENDING_EVENTS = constants.TABLE_TRENDING_EVENTS;
+const TABLE_EVENTS = constants.TABLE_EVENTS;
 const passwordHash = require("password-hash");
 const saveFiles = actions.saveFiles;
 const UID = actions.UID;
@@ -294,6 +296,133 @@ router.post("/admin/get-channel-list", (req, res) => {
         
       
     }
+  });
+});
+
+router.post("/admin/get-event-list", (req, res) => {
+  if (!req.body) return res.json({
+    error: true,
+    mssg: "missing fields"
+  });
+  verifySuperToken(req, (err, decoded) => {
+    if(err) {
+      return res.json({
+        error: true,
+        mssg: "Token Verification failed."
+      });
+    } else {
+      
+      let params = { college: decoded.college };
+      
+      dbo.collection(TABLE_EVENTS).find(
+        params
+      ).toArray(function(err, data) {
+        if (err) {
+          return res.json({
+            error: true,
+            mssg: "Unknown error occured"
+          });
+        }
+        return res.json({
+          error: false,
+          mssg: "lisiting returned",
+          data: data
+        });
+      });
+        
+      
+    }
+  });
+});
+
+router.post("/admin/add-to-trending", (req, res) => {
+  if (!req.body) return res.json({
+    error: true,
+    mssg: "missing fields"
+  });
+  const _id = req.body._id;
+  let validity = req.body.validity;
+  if(_id === undefined || validity === undefined) res.json({
+    error: true,
+    mssg: "Invalid Request"
+  });
+  try {
+    validity = new Date(validity);
+  } catch(e) {
+    return res.json({
+      error: true,
+      mssg: "missing fields"
+    });
+  }
+  verifySuperToken(req, (err, decoded) => {
+    if(err) {
+      return res.json({
+        error: true,
+        mssg: "Token Verification failed."
+      });
+    } else {
+      let params = { _id };
+      dbo.collection(TABLE_EVENTS).findOne(
+        params, function(err, data) {
+          if (err || data.college !== decoded.college) {
+            return res.json({
+              error: true,
+              mssg: "Unknown error occured"
+            });
+          }
+          const params = {
+            _id: data._id,
+            title: data.title,
+            channel : data.channel, 
+            date: data.date,
+            media: data.media,
+            validity,
+            channel_name: data.channel_name,
+            timestamp: data.timestamp,
+            college: data.college
+          };
+          dbo.collection(TABLE_TRENDING_EVENTS).update(
+            { _id }, { $set: params }, { upsert: true }, function(err, data) {
+              if (err) {
+                return res.json({
+                  error: true,
+                  mssg: err
+                });
+              }
+              res.json({
+                error: false,
+                mssg: "Added successfully"
+              });
+            }
+          );
+        });
+    }
+  });
+});
+
+router.post("/admin/get-trending", (req, res) => {
+  verifySuperToken(req, (err, decoded) => {
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const params = {
+      date: { $gte: today },
+      college: decoded.college
+    };
+    dbo.collection(TABLE_TRENDING_EVENTS)
+      .find(params)
+      .toArray(function(err, data) {
+        if (err) {
+          return res.json({
+            error: true,
+            mssg: err
+          });
+        }
+        res.json({
+          error: false,
+          mssg: "Listing successful",
+          data
+        });
+      });
   });
 });
 
