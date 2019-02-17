@@ -214,7 +214,7 @@ router.post("/channels/get-category-channels", verifyRequestCommon, (req, res) =
     error: true,
     mssg: "Invalid Request"
   });
-  const private = req.body.private === undefined ? false : true;
+  const private_channels = req.body.private === undefined ? false : true;
   const timestamp = new Date("" + moment().add(-1, "days").format());
   const query_data = {
     $project: {
@@ -232,7 +232,7 @@ router.post("/channels/get-category-channels", verifyRequestCommon, (req, res) =
     }
   };
   const sort = { $sort : { story_views : -1, channel_visits : -1 }};
-  const match = { $match : { category, last_updated : { $gte : timestamp }, private}};
+  const match = { $match : { category, last_updated : { $gte : timestamp }, private : private_channels}};
 
   dbo.collection(TABLE_CHANNELS).aggregate([query_data, match, sort]).toArray( (err, result) => {
     if(err) return res.json({error : true, mssg  : err});

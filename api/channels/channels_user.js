@@ -51,6 +51,7 @@ router.post("/channels/update-read", verifyRequest, (req, res) => {
 */
 router.post("/channels/update-story-views", verifyRequest, (req, res) => {
   const views = req.body.views;
+  console.log(views);
   if(views === undefined ) 
     return res.json({
       error: true,
