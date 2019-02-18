@@ -153,17 +153,21 @@ router.post("/events/user/enroll", verifyRequest, (req, res) => {
     mssg: "missing fields"
   });
 
-  dbo.collection(TABLE_EVENTS).update(
-    { _id },
-    { $addToSet: { "enrollees" : { decoded, name, email, phone } } }, (err) => {
+  dbo.collection(TABLE_EVENTS).update({ _id },{ $addToSet: { "enrollees" : { decoded, name, email, phone } } }, (err) => {
+    if(err) return res.json({
+      error: true,
+      mssg: err
+    });
+    dbo.collection(TABLE_USERS).update({ _id : decoded.id }, { $addToSet: { registered_events : _id }  }, (err) => {
       if(err) return res.json({
         error: true,
         mssg: err
       });
-      res.json({
+      return res.json({
         error: false
       });
     });
+  });
 });
 
 /*
