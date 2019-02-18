@@ -233,7 +233,12 @@ router.post("/channels/get-category-channels", verifyRequestCommon, (req, res) =
   };
 
   const sort = { $sort : { story_views : -1, channel_visits : -1 }};
-  const match = { $match : { category, last_updated : { $gte : timestamp }, private : private_channels}};
+  let match;
+  if(category === "xxx"){
+    match = { $match : { last_updated : { $gte : timestamp }, private : private_channels}};
+  } else {
+    match = { $match : { category, last_updated : { $gte : timestamp }, private : private_channels}};
+  }
 
   dbo.collection(TABLE_CHANNELS).aggregate([query_data, match, sort]).toArray( (err, result) => {
     if(err) return res.json({error : true, mssg  : err});
