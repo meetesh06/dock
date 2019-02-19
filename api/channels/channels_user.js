@@ -109,24 +109,32 @@ router.post("/channels/user/follow", verifyRequest, (req, res) => {
   dbo.collection(TABLE_CHANNELS).findOne({ _id : channel_id}, (err, result)=>{
     if(result){
       if(result.private){
-        dbo.collection(TABLE_CHANNELS).findOne({ _id : channel_id, hash}, (err)=>{
+        console.log("PRIVATE");
+        dbo.collection(TABLE_CHANNELS).findOne({ _id : channel_id, hash}, (err, result)=>{
           if(err) 
             return res.json({
               error: true,
               mssg : err
             });
-          dbo.collection(TABLE_CHANNELS).update({ _id : channel_id }, { $addToSet: { followers : id }  }, () => {
-            dbo.collection(TABLE_USERS).update({ _id : id }, { $addToSet: { followed_channels : channel_id }  }, (err) => {
-              if(err) 
+          if(result){
+            dbo.collection(TABLE_CHANNELS).update({ _id : channel_id }, { $addToSet: { followers : id }  }, () => {
+              dbo.collection(TABLE_USERS).update({ _id : id }, { $addToSet: { followed_channels : channel_id }  }, (err) => {
+                if(err) 
+                  return res.json({
+                    error: true,
+                    mssg : err
+                  });
                 return res.json({
-                  error: true,
-                  mssg : err
+                  error : false,
                 });
-              return res.json({
-                error : false,
               });
             });
-          });
+          } else {
+            return res.json({
+              error: true,
+              mssg : "Invalid Passkey"
+            });
+          }
         });
       } else {
         dbo.collection(TABLE_CHANNELS).update({ _id : channel_id }, { $addToSet: { followers : id }  }, () => {
