@@ -46,6 +46,48 @@ router.post("/channels/update-read", verifyRequest, (req, res) => {
 });
 
 /*
+  * API end point to view similar tags
+  * Requires (TOKEN, tag)
+  * Returns (array)
+*/
+router.post("/channels/user/collect-tag", verifyRequest, (req, res) => {
+  const tag = req.body.tag;
+  if(tag === undefined || tag === ""){
+    return res.json({
+      error : true,
+      mssg : "invalid request"
+    });
+  }
+  const query_data =
+    {
+      $project: {
+        _id: 1,
+        type: 1,
+        timestamp : 1, 
+        channel: 1,
+        category: 1,
+        validity : 1,
+        message: 1,
+        media : 1,
+        tag : 1
+      }
+    };
+  const match = { $match : { tag}};
+  dbo.collection(TABLE_ACTIVITY).aggregate([query_data, match]).toArray((err, result)=>{
+    if(err){
+      return res.json({
+        error : true,
+        mssg : err
+      });
+    }
+    return res.json({
+      error : false,
+      data : result
+    });
+  });
+});
+
+/*
   * API end point to update story views
   * Requires (TOKEN, array of channels) [{_id : 'something', count : 5}]
   * Returns (ACKNOWLEDGEMENT)
