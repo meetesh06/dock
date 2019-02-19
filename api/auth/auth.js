@@ -288,6 +288,7 @@ router.post("/auth/get-general-token", (req, res) => {
     mssg: "invalid request"
   });
 
+  const other_details = JSON.parse(others);
   dbo.collection(TABLE_USERS).findOne({_id}, (err, result)=>{
     if(err){
       return res.json({
@@ -306,7 +307,6 @@ router.post("/auth/get-general-token", (req, res) => {
           id : _id,
           college,
           interests,
-          others,
           anonymous: true
         };
         jwt.sign(token_payload, APP_SECRET_KEY, { expiresIn: "100d" }, function(err, token) {
@@ -320,7 +320,7 @@ router.post("/auth/get-general-token", (req, res) => {
               _id,
               college,
               interests,
-              others,
+              others : other_details,
               token
             };
             dbo.collection(TABLE_USERS).replaceOne({_id}, params, {upsert: true}, function(err) {
@@ -413,6 +413,39 @@ router.post("/auth/reset-user", (req, res) => {
   });
 });
 
+
+router.post("/auth/update-user", (req, res) => {
+  if (!req.body) return res.json({
+    error: true,
+    mssg: "invalid request"
+  });
+
+  const interests = req.body.interests;
+  const user_data = req.body.user_data;
+
+  if(interests === undefined || user_data === undefined){
+    return res.json({
+      error : true,
+      mssg : "invalid request"
+    });
+  }
+
+  verifyCommonToken(req, (err, decoded) => {
+    if(err) {
+      return res.json({
+        error: true,
+        mssg: "Token Verification failed."
+      });
+    }
+    else {
+      dbo.collection(TABLE_USERS).update({_id: decoded.id}, {$set: {interests, user_data}}, {upsert: true}, ()=>{
+        return res.json({
+          error : false
+        });
+      });      
+    }
+  });
+});
 
 router.post("/auth/put-logs", (req, res) => {
   if (!req.body) return res.json({
