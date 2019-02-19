@@ -50,7 +50,7 @@ router.post("/events/user/get-event-list", verifyRequest, (req, res) => {
   const decoded = req.decoded;
   const college = decoded.college;
   const id = decoded.id;
-
+  
   let last_updated = req.body.last_updated;
 
   if ( last_updated === undefined ) return res.json({
@@ -92,10 +92,13 @@ router.post("/events/user/get-event-list", verifyRequest, (req, res) => {
       }
     };
   
+  let d = new Date();
+  d.setHours(0,0,0,0);
   const match = { 
     $match: {
       $and: [
-        { college }
+        { college },
+        { date: { $gt: d } }
       ]
     }
   };
@@ -107,6 +110,7 @@ router.post("/events/user/get-event-list", verifyRequest, (req, res) => {
   }
 
   dbo.collection(TABLE_EVENTS).aggregate([query_data, match]).toArray( (err, result) => {
+    console.log(err, result);
     if(err) return res.json({
       error: true,
       mssg: err
@@ -231,7 +235,6 @@ router.post("/events/user/fetch-trending", verifyRequest, (req, res) => {
   * Returns (event_data_object, UPDATES_VIEWS)
 */
 router.post("/events/user/fetch-event-data", verifyRequest, (req, res) => {
-  console.log("FETCH EVENT REQUEST");
   const decoded = req.decoded;
   const id = decoded.id;
 
@@ -283,7 +286,6 @@ router.post("/events/user/fetch-event-data", verifyRequest, (req, res) => {
 
   dbo.collection(TABLE_EVENTS).update(
     { _id },
-    // { $addToSet: { "views" : { id, timestamp: new Date().getUTCMonth() + 1 } } }
     { $addToSet: { "views" : { decoded } } }
   );
   
@@ -298,9 +300,14 @@ router.post("/events/user/fetch-event-data", verifyRequest, (req, res) => {
       e.enrollees = e.enrollees.length;
       let output = [];
       output.push(e);
-      res.json({
+      return res.json({
         error: false,
         data: output
+      });
+    } else {
+      return res.json({
+        error: true,
+        mssg : "No such event found"
       });
     }
   });
