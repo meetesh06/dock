@@ -66,6 +66,7 @@ router.post("/channels/user/collect-tag", verifyRequest, (req, res) => {
         timestamp : 1, 
         channel: 1,
         category: 1,
+        views: { $size: "$views" },
         validity : 1,
         message: 1,
         media : 1,
@@ -73,7 +74,8 @@ router.post("/channels/user/collect-tag", verifyRequest, (req, res) => {
       }
     };
   const match = { $match : { tag}};
-  dbo.collection(TABLE_ACTIVITY).aggregate([query_data, match]).toArray((err, result)=>{
+  const sort = { $sort : {timestamp : -1, views : -1}};
+  dbo.collection(TABLE_ACTIVITY).aggregate([query_data, match, sort]).toArray((err, result)=>{
     if(err){
       return res.json({
         error : true,
