@@ -37,7 +37,6 @@ db.connectToServer( function( err ) {
       res.sendFile(path.resolve(__dirname,"public/index.html"));
     });
     
-    
     app.use("/", events_crud);
     app.use("/", events_user);
     app.use("/", events_manager);
@@ -51,7 +50,6 @@ db.connectToServer( function( err ) {
     app.use("/", admin);
     app.use("/", notifications_manager);
     app.use("/", notifications_user);
-
     app.use("/admin", router);
     
     app.listen(PORT, HOST, () => {

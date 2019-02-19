@@ -373,12 +373,12 @@ router.post("/auth/reset-user", (req, res) => {
           error: true,
           mssg: "invalid request"
         });
-
+      
+      const other_details = JSON.parse(others);
       const token_payload = {
         id : _id,
         college,
         interests,
-        others,
         anonymous: true
       };
       jwt.sign(token_payload, APP_SECRET_KEY, { expiresIn: "100d" }, function(err, token) {
@@ -392,7 +392,7 @@ router.post("/auth/reset-user", (req, res) => {
             _id,
             college,
             interests,
-            others,
+            others : other_details,
             token
           };
           dbo.collection(TABLE_USERS).replaceOne({_id}, params, {upsert: true}, function(err) {
@@ -414,7 +414,7 @@ router.post("/auth/reset-user", (req, res) => {
 });
 
 
-router.post("/auth/update-user", (req, res) => {
+router.post("/auth/update-user-data", (req, res) => {
   if (!req.body) return res.json({
     error: true,
     mssg: "invalid request"
@@ -430,6 +430,7 @@ router.post("/auth/update-user", (req, res) => {
     });
   }
 
+  const user_details = JSON.parse(user_data);
   verifyCommonToken(req, (err, decoded) => {
     if(err) {
       return res.json({
@@ -437,8 +438,9 @@ router.post("/auth/update-user", (req, res) => {
         mssg: "Token Verification failed."
       });
     }
+    
     else {
-      dbo.collection(TABLE_USERS).update({_id: decoded.id}, {$set: {interests, user_data}}, {upsert: true}, ()=>{
+      dbo.collection(TABLE_USERS).update({_id: decoded.id}, {$set: {interests, user_data : user_details}}, {upsert: true}, ()=>{
         return res.json({
           error : false
         });
