@@ -65,6 +65,7 @@ router.post("/channels/user/collect-tag", verifyRequest, (req, res) => {
         type: 1,
         timestamp : 1, 
         channel: 1,
+        channel_name: 1,
         category: 1,
         views: { $size: "$views" },
         validity : 1,
