@@ -1,7 +1,6 @@
 /* API COLLECTIONS FOR EVENT CRUD OPERATIONS */
 const express = require("express");
 const actions = require("../../actions/actions");
-const db = require("../../db");
 const templates = require("../../templates");
 const TEMPLATE_EVENT = templates.TEMPLATE_EVENT;
 const constants = require("../../constants");
@@ -13,7 +12,26 @@ const UID = actions.UID;
 const saveFiles = actions.saveFiles;
 const sendToScope = actions.sendToScope;
 const sendEmailHtml = actions.sendEmailHtml;
-const dbo = db.getDb();
+
+// const db_static = require("../../db_static");
+// const dbo_static = db_static.getDb();
+
+// const db_users = require("../../db_users");
+// const dbo_users = db_users.getDb();
+
+// const db_diag = require("../../db_diag");
+// const dbo_diag = db_diag.getDb();
+
+// const db_activities = require("../../db_activities");
+// const dbo_activities = db_activities.getDb();
+
+const db_events = require("../../db_events");
+const dbo_events = db_events.getDb();
+
+// const db_notifications = require("../../db_notifications");
+// const dbo_notifications = db_notifications.getDb();
+
+
 const router = express.Router();
 
 /* HELPER */
@@ -173,7 +191,7 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
       });
     } else {
       query_data["media"] = media;
-      dbo.collection(TABLE_EVENTS).insertOne(query_data, function(err) {
+      dbo_events.collection(TABLE_EVENTS).insertOne(query_data, function(err) {
         if (err) {
           return res.json({
             error: true,
@@ -251,7 +269,7 @@ router.post("/events/search", verifyRequestCommon, (req, res) => {
   const sort = { $sort : {score : -1}};
   const limit = { $limit : 10};
 
-  dbo.collection(TABLE_EVENTS).aggregate([match, query_data, sort, limit]).toArray( (err, result) => {
+  dbo_events.collection(TABLE_EVENTS).aggregate([match, query_data, sort, limit]).toArray( (err, result) => {
     if(err) return res.json({
       error: true,
       mssg: err

@@ -3,7 +3,6 @@ const express = require("express");
 const router = express.Router();
 const actions = require("../../actions/actions");
 const bodyParser = require("body-parser");
-const db = require("../../db");
 const constants = require("../../constants");
 const passwordHash = require("password-hash");
 const TABLE_ACTIVITY = constants.TABLE_ACTIVITY;
@@ -16,7 +15,29 @@ const isValidDate = actions.isValidDate;
 const saveFiles = actions.saveFiles;
 const saveVideo = actions.saveVideo;
 const UID = actions.UID;
-const dbo = db.getDb();
+
+// const db = require("../../db");
+// const dbo = db.getDb();
+
+const db_static = require("../../db_static");
+const dbo_static = db_static.getDb();
+
+const db_users = require("../../db_users");
+const dbo_users = db_users.getDb();
+
+const db_diag = require("../../db_diag");
+const dbo_diag = db_diag.getDb();
+
+const db_activities = require("../../db_activities");
+const dbo_activities = db_activities.getDb();
+
+const db_events = require("../../db_events");
+const dbo_events = db_events.getDb();
+
+const db_notifications = require("../../db_notifications");
+const dbo_notifications = db_notifications.getDb();
+
+
 router.use(bodyParser.json());
 router.use(bodyParser.urlencoded({ extended: true }));
 
@@ -79,7 +100,7 @@ router.post("/channels/manager/create-post", verifyRequest, (req, res) => {
     name
   };
 
-  dbo.collection(TABLE_ACTIVITY).insertOne(query_data, function(err) {
+  dbo_activities.collection(TABLE_ACTIVITY).insertOne(query_data, function(err) {
     if (err) {
       return res.json({
         error: true,
@@ -175,7 +196,7 @@ router.post("/channels/manager/create-image-post", verifyRequest, (req, res) => 
       });
     } else {
       query_data["media"] = media;
-      dbo.collection(TABLE_ACTIVITY).insertOne(query_data, function(err) {
+      dbo_activities.collection(TABLE_ACTIVITY).insertOne(query_data, function(err) {
         if (err) {
           return res.json({
             error: true,
@@ -276,7 +297,7 @@ router.post("/channels/manager/create-video-post", verifyRequest, (req, res) => 
       });
     } else {
       query_data["media"] = filename;
-      dbo.collection(TABLE_ACTIVITY).insertOne(query_data, function(err) {
+      dbo_activities.collection(TABLE_ACTIVITY).insertOne(query_data, function(err) {
         if (err) {
           return res.json({
             error: true,
@@ -371,7 +392,7 @@ router.post("/channels/manager/create-poll", verifyRequest, (req, res) => {
     name
   };
   
-  dbo.collection(TABLE_ACTIVITY).insertOne(query_data, function(err) {
+  dbo_activities.collection(TABLE_ACTIVITY).insertOne(query_data, function(err) {
     if (err) {
       return res.json({
         error: true,
@@ -428,7 +449,7 @@ router.post("/channels/manager/get-member-list", verifyRequest, (req, res) => {
     };
   }
   
-  dbo.collection(TABLE_USERS_ADMIN).find(query_data).toArray( (err, result) => {
+  dbo_users.collection(TABLE_USERS_ADMIN).find(query_data).toArray( (err, result) => {
     if(err) return res.json({
       error: true,
       mssg: err
@@ -462,7 +483,7 @@ router.post("/channels/manager/add-member", verifyRequest, (req, res) => {
   });
 
   const generated_password = passwordHash.generate(password);
-  dbo.collection(TABLE_USERS_ADMIN).insertOne({ 
+  dbo_users.collection(TABLE_USERS_ADMIN).insertOne({ 
     email, 
     password: generated_password,
     name,
@@ -486,7 +507,7 @@ router.post("/channels/manager/add-member", verifyRequest, (req, res) => {
   * Function to update channel with new timestamp & last updates.
 */
 function updateChannel(_id, callback){
-  dbo.collection(TABLE_CHANNELS).findOne({ _id}, (err, result)=>{
+  dbo_static.collection(TABLE_CHANNELS).findOne({ _id}, (err, result)=>{
     if(!err){
       const last_updated = result.last_updated === undefined ? new Date() : result.last_updated;
       let ts = last_updated.getTime() / 1000;
@@ -500,7 +521,7 @@ function updateChannel(_id, callback){
         channel_visits = 0;
         story_views = 0;
       }
-      dbo.collection(TABLE_CHANNELS).update({ _id}, { $set : { channel_visits, story_views, last_updated : new Date()} }, (err_r) => {
+      dbo_static.collection(TABLE_CHANNELS).update({ _id}, { $set : { channel_visits, story_views, last_updated : new Date()} }, (err_r) => {
         if(!err_r){
           callback(false, null);
         } else {

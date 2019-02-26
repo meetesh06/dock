@@ -1,13 +1,31 @@
 /* API COLLECTION FOR CHANNEL - USER SIDE */
 const express = require("express");
 const actions = require("../../actions/actions");
-const db = require("../../db");
 const constants = require("../../constants");
 const TABLE_ACTIVITY = constants.TABLE_ACTIVITY;
 const verifyAnonymousToken = actions.verifyAnonymousToken;
 const TABLE_USERS = constants.TABLE_USERS;
 const TABLE_CHANNELS = constants.TABLE_CHANNELS;
-const dbo = db.getDb();
+
+const db_static = require("../../db_static");
+const dbo_static = db_static.getDb();
+
+const db_users = require("../../db_users");
+const dbo_users = db_users.getDb();
+
+// const db_diag = require("../../db_diag");
+// const dbo_diag = db_diag.getDb();
+
+const db_activities = require("../../db_activities");
+const dbo_activities = db_activities.getDb();
+
+// const db_events = require("../../db_events");
+// const dbo_events = db_events.getDb();
+
+// const db_notifications = require("../../db_notifications");
+// const dbo_notifications = db_notifications.getDb();
+
+
 const router = express.Router();
 
 const verifyRequest = function (req, res, next) {
@@ -38,7 +56,7 @@ router.post("/channels/update-read", verifyRequest, (req, res) => {
   });
   const list = JSON.parse(activity_list);
 
-  dbo.collection(TABLE_ACTIVITY).updateMany({ _id : { $in: list }  }, { "$addToSet": { "views": req.decoded } }, ()=>{
+  dbo_activities.collection(TABLE_ACTIVITY).updateMany({ _id : { $in: list }  }, { "$addToSet": { "views": req.decoded } }, ()=>{
     return res.json({
       error : false
     });
@@ -76,7 +94,7 @@ router.post("/channels/user/collect-tag", verifyRequest, (req, res) => {
     };
   const match = { $match : { tag}};
   const sort = { $sort : {timestamp : -1, views : -1}};
-  dbo.collection(TABLE_ACTIVITY).aggregate([query_data, match, sort]).toArray((err, result)=>{
+  dbo_activities.collection(TABLE_ACTIVITY).aggregate([query_data, match, sort]).toArray((err, result)=>{
     if(err){
       return res.json({
         error : true,
@@ -151,19 +169,19 @@ router.post("/channels/user/follow", verifyRequest, (req, res) => {
       error: true,
       mssg : "Invalid Request"
     });
-  dbo.collection(TABLE_CHANNELS).findOne({ _id : channel_id}, (err, result)=>{
+  dbo_static.collection(TABLE_CHANNELS).findOne({ _id : channel_id}, (err, result)=>{
     if(result){
       if(result.private){
         console.log("PRIVATE");
-        dbo.collection(TABLE_CHANNELS).findOne({ _id : channel_id, hash}, (err, result)=>{
+        dbo_static.collection(TABLE_CHANNELS).findOne({ _id : channel_id, hash}, (err, result)=>{
           if(err) 
             return res.json({
               error: true,
               mssg : err
             });
           if(result){
-            dbo.collection(TABLE_CHANNELS).update({ _id : channel_id }, { $addToSet: { followers : id }  }, () => {
-              dbo.collection(TABLE_USERS).update({ _id : id }, { $addToSet: { followed_channels : channel_id }  }, (err) => {
+            dbo_static.collection(TABLE_CHANNELS).update({ _id : channel_id }, { $addToSet: { followers : id }  }, () => {
+              dbo_users.collection(TABLE_USERS).update({ _id : id }, { $addToSet: { followed_channels : channel_id }  }, (err) => {
                 if(err) 
                   return res.json({
                     error: true,
@@ -182,8 +200,8 @@ router.post("/channels/user/follow", verifyRequest, (req, res) => {
           }
         });
       } else {
-        dbo.collection(TABLE_CHANNELS).update({ _id : channel_id }, { $addToSet: { followers : id }  }, () => {
-          dbo.collection(TABLE_USERS).update({ _id : id }, { $addToSet: { followed_channels : channel_id }  }, (err) => {
+        dbo_static.collection(TABLE_CHANNELS).update({ _id : channel_id }, { $addToSet: { followers : id }  }, () => {
+          dbo_users.collection(TABLE_USERS).update({ _id : id }, { $addToSet: { followed_channels : channel_id }  }, (err) => {
             if(err) 
               return res.json({
                 error: true,
@@ -213,12 +231,12 @@ router.post("/channels/user/unfollow", verifyRequest, (req, res) => {
   const id = decoded.id;
   const channel_id = req.body.channel_id;
 
-  dbo.collection(TABLE_CHANNELS).findOne({ _id : channel_id}, (err, result)=>{
+  dbo_static.collection(TABLE_CHANNELS).findOne({ _id : channel_id}, (err, result)=>{
     if(result){
-      dbo.collection(TABLE_CHANNELS).update({ _id : channel_id }, { $pull: { followers : id }  }, (err) => {
+      dbo_static.collection(TABLE_CHANNELS).update({ _id : channel_id }, { $pull: { followers : id }  }, (err) => {
         console.log(err);
       });
-      dbo.collection(TABLE_USERS).update({ _id : id }, { $pull: { followed_channels : channel_id }  }, (err) => {
+      dbo_users.collection(TABLE_USERS).update({ _id : id }, { $pull: { followed_channels : channel_id }  }, (err) => {
         if(err) 
           return res.json({
             error: true,
@@ -252,7 +270,7 @@ router.post("/channels/user/fetch-channel", verifyRequest, (req, res) => {
     mssg: "invalid request"
   });
   
-  dbo.collection(TABLE_CHANNELS).findOne({_id : channel_id}, (err, result) =>{
+  dbo_static.collection(TABLE_CHANNELS).findOne({_id : channel_id}, (err, result) =>{
     result.requests = result.requests === undefined ? [] : result.requests;
     result["followed"] = result.followers.includes(id);
     result["requested"] = result.requests.includes(id);
@@ -300,7 +318,7 @@ router.post("/channels/user/fetch-channel-data", verifyRequest, (req, res) => {
   };
   const match = { $match : { _id }};
 
-  dbo.collection(TABLE_CHANNELS).aggregate([query_data, match]).toArray( (err, result) => {
+  dbo_static.collection(TABLE_CHANNELS).aggregate([query_data, match]).toArray( (err, result) => {
     if(err) return res.json({error : true, mssg  : err});
     return res.json({error : false, data : result});
   });
@@ -378,7 +396,7 @@ router.post("/channels/user/fetch-college-channels", verifyRequest, (req, res) =
     }
   };
 
-  dbo.collection(TABLE_CHANNELS).aggregate([query_data, match]).toArray( (err, result) => {
+  dbo_static.collection(TABLE_CHANNELS).aggregate([query_data, match]).toArray( (err, result) => {
     if(err) return res.json({
       error: true,
       mssg: err
@@ -415,7 +433,7 @@ router.post("/channels/user/fetch-channel-users", verifyRequest, (req, res) => {
     mssg: "invalid request"
   });
   
-  dbo.collection(TABLE_CHANNELS).findOne({_id : channel_id}, (err, result) =>{
+  dbo_static.collection(TABLE_CHANNELS).findOne({_id : channel_id}, (err, result) =>{
     const followers = result.followers;
     if(err)
       return res.json({
@@ -436,7 +454,7 @@ router.post("/channels/user/fetch-channel-users", verifyRequest, (req, res) => {
 */
 router.post("/channels/user/fetch-poll-stats", verifyRequest, (req, res) => {
   const _id = req.body._id;
-  dbo.collection(TABLE_ACTIVITY).findOne({_id}, (err, result) =>{
+  dbo_static.collection(TABLE_ACTIVITY).findOne({_id}, (err, result) =>{
     if(err)
       return res.json({
         error : true,
@@ -467,12 +485,12 @@ router.post("/channels/user/answer-poll", verifyRequest, (req, res) => {
     });
 
   let dope = "options."+option;
-  dbo.collection(TABLE_ACTIVITY).update({ _id }, { $addToSet: { [dope] : id }  }, (err) => {
+  dbo_static.collection(TABLE_ACTIVITY).update({ _id }, { $addToSet: { [dope] : id }  }, (err) => {
     if(err) return res.json({
       error: true,
       mssg: err
     });
-    dbo.collection(TABLE_ACTIVITY).findOne({_id}, (err, result) =>{
+    dbo_static.collection(TABLE_ACTIVITY).findOne({_id}, (err, result) =>{
       if(err)
         return res.json({
           error : true,
@@ -487,7 +505,7 @@ router.post("/channels/user/answer-poll", verifyRequest, (req, res) => {
 });
 
 function updateField(field, _id, count){
-  dbo.collection(TABLE_CHANNELS).update({ _id }, { "$inc": {[field] : count}});
+  dbo_static.collection(TABLE_CHANNELS).update({ _id }, { "$inc": {[field] : count}});
   return;
 }
 

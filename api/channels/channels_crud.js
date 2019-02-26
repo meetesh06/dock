@@ -3,14 +3,32 @@ const express = require("express");
 const router = express.Router();
 const actions = require("../../actions/actions");
 const bodyParser = require("body-parser");
-const db = require("../../db");
 var moment = require("moment");
 const constants = require("../../constants");
 const TABLE_ACTIVITY = constants.TABLE_ACTIVITY;
 const TABLE_CHANNELS = constants.TABLE_CHANNELS;
 const verifyCommonToken = actions.verifyCommonToken;
 const isValidDate = actions.isValidDate;
-const dbo = db.getDb();
+
+const db_static = require("../../db_static");
+const dbo_static = db_static.getDb();
+
+// const db_users = require("../../db_users");
+// const dbo_users = db_users.getDb();
+
+// const db_diag = require("../../db_diag");
+// const dbo_diag = db_diag.getDb();
+
+const db_activities = require("../../db_activities");
+const dbo_activities = db_activities.getDb();
+
+// const db_events = require("../../db_events");
+// const dbo_events = db_events.getDb();
+
+// const db_notifications = require("../../db_notifications");
+// const dbo_notifications = db_notifications.getDb();
+
+
 router.use(bodyParser.json());
 router.use(bodyParser.urlencoded({ extended: true }));
 
@@ -108,7 +126,7 @@ router.post("/channels/fetch-popular-activity", verifyRequestCommon, (req, res) 
     match = { $match : { "timestamp" : { $gte : d } } };
   else
     match = { $match : { "timestamp" : { $gte : d }, "category":  category } };
-  dbo.collection(TABLE_ACTIVITY).aggregate([query_data, match, sort]).toArray( (err, result) => {
+  dbo_activities.collection(TABLE_ACTIVITY).aggregate([query_data, match, sort]).toArray( (err, result) => {
     if(err) return res.json({error : true, mssg  : err});
     return res.json({error : false, data : result});
   });
@@ -148,7 +166,7 @@ router.post("/channels/search", verifyRequestCommon, (req, res) => {
   const sort = { $sort : {score : -1}};
   const limit = { $limit : 10};
 
-  dbo.collection(TABLE_CHANNELS).aggregate([match, query_data, sort, limit]).toArray( (err, result) => {
+  dbo_static.collection(TABLE_CHANNELS).aggregate([match, query_data, sort, limit]).toArray( (err, result) => {
     if(err) return res.json({
       error: true,
       mssg: err
@@ -196,7 +214,7 @@ router.post("/channels/top", verifyRequestCommon, (req, res) => {
   const match = { $match : { category_found : true, channel_already : false }};
   const limit = { $limit : parseInt(count)};
 
-  dbo.collection(TABLE_CHANNELS).aggregate([query_data, match, sort, limit]).toArray( (err, result) => {
+  dbo_static.collection(TABLE_CHANNELS).aggregate([query_data, match, sort, limit]).toArray( (err, result) => {
     if(err) return res.json({error : true, mssg  : err});
     return res.json({error : false, data : result});
   });
@@ -240,7 +258,7 @@ router.post("/channels/get-category-channels", verifyRequestCommon, (req, res) =
     match = { $match : { category, last_updated : { $gte : timestamp }, private : private_channels}};
   }
 
-  dbo.collection(TABLE_CHANNELS).aggregate([query_data, match, sort]).toArray( (err, result) => {
+  dbo_static.collection(TABLE_CHANNELS).aggregate([query_data, match, sort]).toArray( (err, result) => {
     if(err) return res.json({error : true, mssg  : err});
     return res.json({error : false, data : result});
   });
@@ -278,7 +296,7 @@ router.post("/channels/all", verifyRequestCommon, (req, res) => {
   const match = { $match : { channel_already : false }};
   const limit = { $limit : parseInt(count)};
 
-  dbo.collection(TABLE_CHANNELS).aggregate([query_data, match, sort, limit]).toArray( (err, result) => {
+  dbo_static.collection(TABLE_CHANNELS).aggregate([query_data, match, sort, limit]).toArray( (err, result) => {
     if(err) return res.json({error : true, mssg  : err});
     return res.json({error : false, data : result});
   });
@@ -331,7 +349,7 @@ function fetch_activity(channel_id, last_updated, indx, callback){
     };
   }
 
-  dbo.collection(TABLE_ACTIVITY).find(query_data).sort({ timestamp: -1 }).toArray((err, result) => {
+  dbo_activities.collection(TABLE_ACTIVITY).find(query_data).sort({ timestamp: -1 }).toArray((err, result) => {
     if(err) return callback({ error : true, indx, mssg : err });
     //if(result.length === 0) return callback({error : false, indx, data : result});
     return callback({error : false, indx, data : result});

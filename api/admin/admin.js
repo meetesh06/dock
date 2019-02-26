@@ -3,11 +3,11 @@ const express = require("express");
 const actions = require("../../actions/actions");
 const constants = require("../../constants");
 const bodyParser = require("body-parser");
-const db = require("../../db");
-const dbo = db.getDb();
+
 const router = express.Router();
 const { ObjectId } = require("mongodb");
 const verifySuperToken = actions.verifySuperToken;
+const sendEmailHtml = actions.sendEmailHtml;
 const TABLE_CHANNELS = constants.TABLE_CHANNELS;
 const TABLE_CATEGORIES = constants.TABLE_CATEGORIES;
 const TABLE_USERS_ADMIN = constants.TABLE_USERS_ADMIN;
@@ -17,6 +17,28 @@ const passwordHash = require("password-hash");
 const saveFiles = actions.saveFiles;
 const UID = actions.UID;
 const helpers = require("../functions/functions");
+
+const db_static = require("../../db_static");
+const dbo_static = db_static.getDb();
+
+const db_users = require("../../db_users");
+const dbo_users = db_users.getDb();
+
+// const db_diag = require("../../db_diag");
+// const dbo_diag = db_diag.getDb();
+
+// const db_activities = require("../../db_activities");
+// const dbo_activities = db_activities.getDb();
+
+const db_events = require("../../db_events");
+const dbo_events = db_events.getDb();
+
+// const db_notifications = require("../../db_notifications");
+// const dbo_notifications = db_notifications.getDb();
+
+
+const templates = require("../../templates");
+const TEMPLATE_INVITE = templates.TEMPLATE_INVITE;
 
 router.use(bodyParser.json());
 router.use(bodyParser.urlencoded({ extended: true }));
@@ -66,7 +88,7 @@ router.post("/admin/create-channel", (req, res) => {
             mssg: err
           });
         } else {
-          dbo.collection(TABLE_USERS_ADMIN).insertOne({
+          dbo_users.collection(TABLE_USERS_ADMIN).insertOne({
             email: creatorEmail,
             password: passwordHash.generate(creatorPassword),
             college: decoded.college,
@@ -77,7 +99,7 @@ router.post("/admin/create-channel", (req, res) => {
               error: true,
               mssg: err.message
             });
-            dbo.collection(TABLE_CHANNELS).insertOne({
+            dbo_static.collection(TABLE_CHANNELS).insertOne({
               _id: id,
               name,
               description,
@@ -135,13 +157,13 @@ router.post("/admin/update-channel", (req, res) => {
         mssg: "missing fields"
       });
       if(creatorPassword !== "") {
-        dbo.collection(TABLE_USERS_ADMIN).updateOne({ channel_id: _id }, { $set:{ password: passwordHash.generate(creatorPassword) } }, (err) => {
+        dbo_users.collection(TABLE_USERS_ADMIN).updateOne({ channel_id: _id }, { $set:{ password: passwordHash.generate(creatorPassword) } }, (err) => {
           if(err) return res.json({
             error: true,
             mssg: err
           });
           if(req.files === undefined || req.files === null || req.files.length === 0) {
-            dbo.collection(TABLE_CHANNELS).updateOne({ _id: ObjectId(_id) }, { $set:{ name, description } }, (err) => {
+            dbo_static.collection(TABLE_CHANNELS).updateOne({ _id: ObjectId(_id) }, { $set:{ name, description } }, (err) => {
               if (err) {
                 return res.json({
                   error: true,
@@ -162,7 +184,7 @@ router.post("/admin/update-channel", (req, res) => {
                 });
               } else {
                 
-                dbo.collection(TABLE_CHANNELS).update({ _id: ObjectId(_id) }, { $set:{ name, description, creator_password: creatorPassword, media: ["channels/"+media] } }, { upsert: false }, (err) => {
+                dbo_static.collection(TABLE_CHANNELS).update({ _id: ObjectId(_id) }, { $set:{ name, description, creator_password: creatorPassword, media: ["channels/"+media] } }, { upsert: false }, (err) => {
                   if (err) {
                     return res.json({
                       error: true,
@@ -180,7 +202,7 @@ router.post("/admin/update-channel", (req, res) => {
         });
       } else {
         if(req.files === undefined || req.files === null || req.files.length === 0) {
-          dbo.collection(TABLE_CHANNELS).updateOne({ _id }, { $set:{ name, description } }, (err) => {
+          dbo_static.collection(TABLE_CHANNELS).updateOne({ _id }, { $set:{ name, description } }, (err) => {
             if (err) {
               return res.json({
                 error: true,
@@ -200,7 +222,7 @@ router.post("/admin/update-channel", (req, res) => {
                 mssg: err
               });
             } else {
-              dbo.collection(TABLE_CHANNELS).update({ _id }, { $set:{ name, description, creator_password: creatorPassword, media: ["channels/"+media] } }, { upsert: false }, (err) => {
+              dbo_static.collection(TABLE_CHANNELS).update({ _id }, { $set:{ name, description, creator_password: creatorPassword, media: ["channels/"+media] } }, { upsert: false }, (err) => {
                 if (err) {
                   return res.json({
                     error: true,
@@ -241,7 +263,7 @@ router.post("/admin/get-categories", (req, res) => {
     } else {
       
       
-      dbo.collection(TABLE_CATEGORIES).find({
+      dbo_static.collection(TABLE_CATEGORIES).find({
       }).toArray(function(err, data) {
         if (err) {
           return res.json({
@@ -278,7 +300,7 @@ router.post("/admin/get-channel-list", (req, res) => {
       if(decoded.scope === "xxx") {
         params = {};
       }
-      dbo.collection(TABLE_CHANNELS).find(
+      dbo_static.collection(TABLE_CHANNELS).find(
         params
       ).toArray(function(err, data) {
         if (err) {
@@ -314,7 +336,7 @@ router.post("/admin/get-event-list", (req, res) => {
       
       let params = { college: decoded.college };
       
-      dbo.collection(TABLE_EVENTS).find(
+      dbo_events.collection(TABLE_EVENTS).find(
         params
       ).toArray(function(err, data) {
         if (err) {
@@ -362,7 +384,7 @@ router.post("/admin/add-to-trending", (req, res) => {
       });
     } else {
       let params = { _id };
-      dbo.collection(TABLE_EVENTS).findOne(
+      dbo_events.collection(TABLE_EVENTS).findOne(
         params, function(err, data) {
           if (err || data.college !== decoded.college) {
             return res.json({
@@ -381,7 +403,7 @@ router.post("/admin/add-to-trending", (req, res) => {
             timestamp: data.timestamp,
             college: data.college
           };
-          dbo.collection(TABLE_TRENDING_EVENTS).update(
+          dbo_events.collection(TABLE_TRENDING_EVENTS).update(
             { _id }, { $set: params }, { upsert: true }, function(err, data) {
               if (err) {
                 return res.json({
@@ -400,6 +422,54 @@ router.post("/admin/add-to-trending", (req, res) => {
   });
 });
 
+router.post("/admin/email-invite", (req, res) => {
+  if (!req.body) return res.json({
+    error: true,
+    mssg: "missing fields"
+  });
+  const email = req.body.email;
+  const name = req.body.name;
+  const name1 = req.body.name1;
+  if(
+    email === undefined ||
+    name === undefined ||
+    name1 === undefined
+  ) res.json({
+    error: true,
+    mssg: "Invalid Request"
+  });
+
+  verifySuperToken(req, (err, decoded) => {
+    if(err) {
+      return res.json({
+        error: true,
+        mssg: "Token Verification failed."
+      });
+    } else {
+      const html = {
+        content: TEMPLATE_INVITE(name, name1)
+      };
+      sendEmailHtml(
+        email,
+        "Welcome to Campus Story",
+        html,
+        (err) => {
+          if(err) {
+            return res.json({
+              error: true,
+              mssg: "Token Verification failed."
+            });
+          }
+          return res.json({
+            error: false,
+            mssg: "Email Sent Successfully."
+          });
+        }
+      );
+    }
+  });
+});
+
 router.post("/admin/get-trending", (req, res) => {
   verifySuperToken(req, (err, decoded) => {
     const today = new Date();
@@ -408,7 +478,7 @@ router.post("/admin/get-trending", (req, res) => {
       date: { $gte: today },
       college: decoded.college
     };
-    dbo.collection(TABLE_TRENDING_EVENTS)
+    dbo_events.collection(TABLE_TRENDING_EVENTS)
       .find(params)
       .toArray(function(err, data) {
         if (err) {

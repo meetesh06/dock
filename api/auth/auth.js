@@ -5,7 +5,7 @@ const APP_SECRET_KEY = "KmnIIN60jZSN4wWXN52F-dope";
 const express = require("express");
 const emailValidator = require("email-validator");
 const actions = require("../../actions/actions");
-const db = require("../../db");
+
 const bodyParser = require("body-parser");
 const jwt = require("jsonwebtoken");
 const constants = require("../../constants");
@@ -13,14 +13,35 @@ const passwordHash = require("password-hash");
 const verifyManagerToken = actions.verifyManagerToken;
 const verifySuperToken = actions.verifySuperToken;
 const verifyCommonToken = actions.verifyCommonToken;
-const TABLE_CHANNELS = constants.TABLE_CHANNELS;
-const TABLE_USERS_ADMIN = constants.TABLE_USERS_ADMIN;
-const TABLE_USERS = constants.TABLE_USERS;
-const TABLE_TOKENS = constants.TABLE_TOKENS;
-const TABLE_LOGS = constants.TABLE_LOGS;
-const TABLE_TRACKS = constants.TABLE_TRACKS;
-const TABLE_SUPER_ADMIN = constants.TABLE_SUPER_ADMIN;
-const dbo = db.getDb();
+
+const TABLE_CHANNELS = constants.TABLE_CHANNELS; // static
+const TABLE_USERS_ADMIN = constants.TABLE_USERS_ADMIN; // users
+const TABLE_USERS = constants.TABLE_USERS; // users
+const TABLE_TOKENS = constants.TABLE_TOKENS; // users
+const TABLE_LOGS = constants.TABLE_LOGS; // diagnostics
+const TABLE_TRACKS = constants.TABLE_TRACKS; // diagnostics
+const TABLE_SUPER_ADMIN = constants.TABLE_SUPER_ADMIN; // users
+
+// database connections
+const db_static = require("../../db_static");
+const dbo_static = db_static.getDb();
+
+const db_users = require("../../db_users");
+const dbo_users = db_users.getDb();
+
+const db_diag = require("../../db_diag");
+const dbo_diag = db_diag.getDb();
+
+// const db_activities = require("../../db_activities");
+// const dbo_activities = db_activities.getDb();
+
+// const db_events = require("../../db_events");
+// const dbo_events = db_events.getDb();
+
+// const db_notifications = require("../../db_notifications");
+// const dbo_notifications = db_notifications.getDb();
+
+
 const router = express.Router();
 
 router.use(bodyParser.json());
@@ -136,7 +157,7 @@ router.post("/auth/manager/signin", (req, res) => {
       mssg: "invalid email"
     });
   }
-  dbo.collection(TABLE_USERS_ADMIN).findOne({
+  dbo_users.collection(TABLE_USERS_ADMIN).findOne({
     email
   }, function(err, data) {
     if (err) {
@@ -146,7 +167,7 @@ router.post("/auth/manager/signin", (req, res) => {
       });
     }
     if (data) {
-      dbo.collection(TABLE_CHANNELS).findOne({ _id : data.channel_id}, (err, result)=>{
+      dbo_static.collection(TABLE_CHANNELS).findOne({ _id : data.channel_id}, (err, result)=>{
         if(result){
           console.log(result);
           if (passwordHash.verify(password, data.password)) {
@@ -221,7 +242,7 @@ router.post("/auth/super/signin", (req, res) => {
       mssg: "invalid email"
     });
   }
-  dbo.collection(TABLE_SUPER_ADMIN).findOne({
+  dbo_users.collection(TABLE_SUPER_ADMIN).findOne({
     email
   }, function(err, data) {
     if (err) {
@@ -289,7 +310,7 @@ router.post("/auth/get-general-token", (req, res) => {
   });
 
   const other_details = JSON.parse(others);
-  dbo.collection(TABLE_USERS).findOne({_id}, (err, result)=>{
+  dbo_users.collection(TABLE_USERS).findOne({_id}, (err, result)=>{
     if(err){
       return res.json({
         error: true,
@@ -323,7 +344,7 @@ router.post("/auth/get-general-token", (req, res) => {
               others : other_details,
               token
             };
-            dbo.collection(TABLE_USERS).replaceOne({_id}, params, {upsert: true}, function(err) {
+            dbo_users.collection(TABLE_USERS).replaceOne({_id}, params, {upsert: true}, function(err) {
               if(err){
                 return res.json({
                   error: true,
@@ -395,7 +416,7 @@ router.post("/auth/reset-user", (req, res) => {
             others : other_details,
             token
           };
-          dbo.collection(TABLE_USERS).replaceOne({_id}, params, {upsert: true}, function(err) {
+          dbo_users.collection(TABLE_USERS).replaceOne({_id}, params, {upsert: true}, function(err) {
             if(err){
               return res.json({
                 error: true,
@@ -440,7 +461,7 @@ router.post("/auth/update-user-data", (req, res) => {
     }
     
     else {
-      dbo.collection(TABLE_USERS).update({_id: decoded.id}, {$set: {interests, user_data : user_details}}, {upsert: true}, ()=>{
+      dbo_users.collection(TABLE_USERS).update({_id: decoded.id}, {$set: {interests, user_data : user_details}}, {upsert: true}, ()=>{
         return res.json({
           error : false
         });
@@ -479,7 +500,7 @@ router.post("/auth/put-logs", (req, res) => {
       catch(e){
         console.log(e);
       }
-      dbo.collection(TABLE_LOGS).insertOne({timestamp, session_id, logs});
+      dbo_diag.collection(TABLE_LOGS).insertOne({timestamp, session_id, logs});
       return res.json({
         error : false
       });
@@ -517,7 +538,7 @@ router.post("/auth/put-tracks", (req, res) => {
       catch(e){
         console.log(e);
       }
-      dbo.collection(TABLE_TRACKS).insertOne({timestamp, session_id, logs});
+      dbo_diag.collection(TABLE_TRACKS).insertOne({timestamp, session_id, logs});
       return res.json({
         error : false
       });
@@ -529,7 +550,7 @@ router.post("/auth/put-tracks", (req, res) => {
 
 /* SAVE ANY ISSUED TOKEN TO DB */
 function saveToken(token, callback){
-  dbo.collection(TABLE_TOKENS).insertOne({token}, (err)=>{
+  dbo_diag.collection(TABLE_TOKENS).insertOne({token}, (err)=>{
     if(!err) return callback(false, null);
     else return callback(true, err);
   });

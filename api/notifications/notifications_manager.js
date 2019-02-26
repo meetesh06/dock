@@ -3,14 +3,31 @@ const express = require("express");
 const router = express.Router();
 const actions = require("../../actions/actions");
 const bodyParser = require("body-parser");
-const db = require("../../db");
 const constants = require("../../constants");
 
 const TABLE_NOTIFICATIONS = constants.TABLE_NOTIFICATIONS;
 const verifyManagerToken = actions.verifyManagerToken;
 const sendToScope = actions.sendToScope;
 const UID = actions.UID;
-const dbo = db.getDb();
+
+// const db_static = require("../../db_static");
+// const dbo_static = db_static.getDb();
+
+// const db_users = require("../../db_users");
+// const dbo_users = db_users.getDb();
+
+// const db_diag = require("../../db_diag");
+// const dbo_diag = db_diag.getDb();
+
+// const db_activities = require("../../db_activities");
+// const dbo_activities = db_activities.getDb();
+
+// const db_events = require("../../db_events");
+// const dbo_events = db_events.getDb();
+
+const db_notifications = require("../../db_notifications");
+const dbo_notifications = db_notifications.getDb();
+
 
 router.use(bodyParser.json());
 router.use(bodyParser.urlencoded({ extended: true }));
@@ -63,7 +80,7 @@ router.post("/notifications/manager/create", verifyRequest, (req, res) => {
     timestamp
   };
 
-  dbo.collection(TABLE_NOTIFICATIONS).insertOne(query_data, function(err) {
+  dbo_notifications.collection(TABLE_NOTIFICATIONS).insertOne(query_data, function(err) {
     if (err) {
       return res.json({
         error: true,

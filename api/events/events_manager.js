@@ -1,12 +1,15 @@
 /* API COLLECTIONS FOR EVENT MANAGER SIDE */
 const express = require("express");
 const actions = require("../../actions/actions");
-const db = require("../../db");
 const constants = require("../../constants");
 const verifyManagerToken = actions.verifyManagerToken;
 const isValidDate = actions.isValidDate;
 const TABLE_EVENTS = constants.TABLE_EVENTS;
-const dbo = db.getDb();
+
+const db_events = require("../../db_events");
+const dbo_events = db_events.getDb();
+
+
 const router = express.Router();
 
 /* HELPER */
@@ -88,7 +91,7 @@ router.post("/events/manager/get-event-list", verifyRequest, (req, res) => {
     });
   }
 
-  dbo.collection(TABLE_EVENTS).aggregate([query_data, match]).toArray( (err, result) => {
+  dbo_events.collection(TABLE_EVENTS).aggregate([query_data, match]).toArray( (err, result) => {
     if(err) return res.json({
       error: true,
       mssg: err
@@ -157,7 +160,7 @@ router.post("/events/manager/fetch-event-data", verifyRequest, (req, res) => {
     }
   };
   
-  dbo.collection(TABLE_EVENTS).aggregate([query_data, match]).toArray( (err, result) => {
+  dbo_events.collection(TABLE_EVENTS).aggregate([query_data, match]).toArray( (err, result) => {
     if(err) return res.json({
       error: true,
       mssg: err

@@ -31,7 +31,7 @@ const smtpTransport = nodemailer.createTransport({
 
 exports.sendEmailHtml = function(reciever, subject, html, callback) {
   var mailOptions = {
-    from: "\"Dock\" <support@mycampusdock.com>",
+    from: "\"Campus Story\" <support@mycampusdock.com>",
     to: reciever,
     subject: subject,
     html
@@ -106,36 +106,35 @@ exports.saveVideo = function(file, callback) {
 };
 
 exports.updateScopeAsync = function(audience, type) {
-  let i;
-
+  // let i;
   /* 0 - event */
   /* 1 - post */
   /* 2 - poll */
-  let current_hash = "d_hash";
-  switch (type) {
-  case 0:
-    current_hash = "event_hash";
-    break;
-  case 1:
-    current_hash = "post";
-    break;
-  case 2:
-    current_hash = "poll";
-    break;
-  default:
-    return;
-  }
-  let params = {};
-  params[current_hash] = random();
-  for (i = 0; i < audience.length; i++) {
-    dbo.collection(TABLE_SCOPE).update({
-      name: audience[i]
-    }, {
-      $set: params
-    }, {
-      upsert: true
-    });
-  }
+  // let current_hash = "d_hash";
+  // switch (type) {
+  // case 0:
+  //   current_hash = "event_hash";
+  //   break;
+  // case 1:
+  //   current_hash = "post";
+  //   break;
+  // case 2:
+  //   current_hash = "poll";
+  //   break;
+  // default:
+  //   return;
+  // }
+  // let params = {};
+  // params[current_hash] = random();
+  // for (i = 0; i < audience.length; i++) {
+  //   dbo.collection(TABLE_SCOPE).update({
+  //     name: audience[i]
+  //   }, {
+  //     $set: params
+  //   }, {
+  //     upsert: true
+  //   });
+  // }
 };
 
 exports.sendToScope = function(scopeArray, payload) {

@@ -1,17 +1,34 @@
 /* API COLLECTIONS FOR EVENT USER SIDE */
 const express = require("express");
 const actions = require("../../actions/actions");
-const db = require("../../db");
 const constants = require("../../constants");
 const verifyAnonymousToken = actions.verifyAnonymousToken;
 const isValidDate = actions.isValidDate;
+
 const TABLE_EVENTS = constants.TABLE_EVENTS;
 const TABLE_USERS = constants.TABLE_USERS;
 const TABLE_TREDNING_EVENTS = constants.TABLE_TRENDING_EVENTS;
-const TABLE_PAYMENTS = constants.TABLE_PAYMENTS;
-const dbo = db.getDb();
+// const TABLE_PAYMENTS = constants.TABLE_PAYMENTS;
+
 const router = express.Router();
-const UID = actions.UID;
+
+// const db_static = require("../../db_static");
+// const dbo_static = db_static.getDb();
+
+const db_users = require("../../db_users");
+const dbo_users = db_users.getDb();
+
+// const db_diag = require("../../db_diag");
+// const dbo_diag = db_diag.getDb();
+
+// const db_activities = require("../../db_activities");
+// const dbo_activities = db_activities.getDb();
+
+const db_events = require("../../db_events");
+const dbo_events = db_events.getDb();
+
+// const db_notifications = require("../../db_notifications");
+// const dbo_notifications = db_notifications.getDb();
 
 /* HELPER */
 const verifyRequest = function (req, res, next) {
@@ -109,7 +126,7 @@ router.post("/events/user/get-event-list", verifyRequest, (req, res) => {
     });
   }
 
-  dbo.collection(TABLE_EVENTS).aggregate([query_data, match]).toArray( (err, result) => {
+  dbo_events.collection(TABLE_EVENTS).aggregate([query_data, match]).toArray( (err, result) => {
     console.log(err, result);
     if(err) return res.json({
       error: true,
@@ -131,7 +148,7 @@ router.post("/events/user/get-event-list", verifyRequest, (req, res) => {
     const event_list = result.map(a => a._id);
     if(event_list.length === 0) return;
 
-    dbo.collection(TABLE_EVENTS).updateMany(
+    dbo_events.collection(TABLE_EVENTS).updateMany(
       { _id: { $in: event_list } },
       { $addToSet: { "reach" : { id, timestamp: new Date() } } }
     );
@@ -157,12 +174,12 @@ router.post("/events/user/enroll", verifyRequest, (req, res) => {
     mssg: "missing fields"
   });
 
-  dbo.collection(TABLE_EVENTS).update({ _id },{ $addToSet: { "enrollees" : { decoded, name, email, phone } } }, (err) => {
+  dbo_events.collection(TABLE_EVENTS).update({ _id },{ $addToSet: { "enrollees" : { decoded, name, email, phone } } }, (err) => {
     if(err) return res.json({
       error: true,
       mssg: err
     });
-    dbo.collection(TABLE_USERS).update({ _id : decoded.id }, { $addToSet: { registered_events : _id }  }, (err) => {
+    dbo_users.collection(TABLE_USERS).update({ _id : decoded.id }, { $addToSet: { registered_events : _id }  }, (err) => {
       if(err) return res.json({
         error: true,
         mssg: err
@@ -187,7 +204,7 @@ router.post("/events/user/interested", verifyRequest, (req, res) => {
     mssg: "missing fields"
   });
 
-  dbo.collection(TABLE_EVENTS).update(
+  dbo_events.collection(TABLE_EVENTS).update(
     { _id },
     { $addToSet: { "interested" : { decoded } } }, (err) => {
       if(err) return res.json({
@@ -215,7 +232,7 @@ router.post("/events/user/fetch-trending", verifyRequest, (req, res) => {
       }
     };
   const match = { $match : { validity : { $gte : new Date()}}};
-  dbo.collection(TABLE_TREDNING_EVENTS).aggregate([query_data, match]).toArray((err, result)=>{
+  dbo_events.collection(TABLE_TREDNING_EVENTS).aggregate([query_data, match]).toArray((err, result)=>{
     if(err){
       return res.json({
         error : true,
@@ -284,12 +301,12 @@ router.post("/events/user/fetch-event-data", verifyRequest, (req, res) => {
     }
   };
 
-  dbo.collection(TABLE_EVENTS).update(
+  dbo_events.collection(TABLE_EVENTS).update(
     { _id },
     { $addToSet: { "views" : { decoded } } }
   );
   
-  dbo.collection(TABLE_EVENTS).aggregate([query_data, match]).toArray( (err, result) => {
+  dbo_events.collection(TABLE_EVENTS).aggregate([query_data, match]).toArray( (err, result) => {
     if(err) return res.json({
       error: true,
       mssg: err
@@ -318,57 +335,57 @@ router.post("/events/user/fetch-event-data", verifyRequest, (req, res) => {
   * Requires (TOKEN, event_id)
   * Returns (ACKNOWLEDGEMENT)
 */
-router.post("/events/user/purchase", verifyRequest, (req, res) => {
-  const decoded = req.decoded;
-  const id = decoded.id;
-  const event_id = req.body._id;
+// router.post("/events/user/purchase", verifyRequest, (req, res) => {
+//   const decoded = req.decoded;
+//   const id = decoded.id;
+//   const event_id = req.body._id;
 
-  if(event_id === undefined) {
-    return res.json({
-      error : true,
-      mssg : "Missing Fields"
-    });
-  }
+//   if(event_id === undefined) {
+//     return res.json({
+//       error : true,
+//       mssg : "Missing Fields"
+//     });
+//   }
 
-  let purchase_id = UID(32);
+//   let purchase_id = UID(32);
 
-  dbo.collection(TABLE_PAYMENTS).findOne({event_id, user_id : id}, (err, result) =>{
-    if(err) return res.json({
-      error: true,
-      mssg : err
-    });
+//   dbo.collection(TABLE_PAYMENTS).findOne({event_id, user_id : id}, (err, result) =>{
+//     if(err) return res.json({
+//       error: true,
+//       mssg : err
+//     });
     
-    if(result) return res.json({
-      error : false,
-      data : result
-    });
+//     if(result) return res.json({
+//       error : false,
+//       data : result
+//     });
 
-    dbo.collection(TABLE_PAYMENTS).insertOne({ _id : purchase_id, user_id : id, event_id, timestamp : new Date()}, (err)=>{
-      if(err) return;
-      dbo.collection(TABLE_EVENTS).updateOne({ _id : event_id}, { $addToSet: { enrollees : id }  }, (err, result)=>{
-        if(result){
-          dbo.collection(TABLE_USERS).updateOne({ _id : id }, { $addToSet: { events : event_id }  }, (err, results) => {
-            console.log(err, results);
-            if(err)
-              return res.json({
-                error: true,
-                mssg : err
-              });
-            return res.json({
-              error : false,
-              data : { _id : purchase_id, user_id : id, event_id, timestamp : new Date()}
-            });
-          });
-        } else {
-          return res.json({
-            error: true,
-            mssg: err
-          });
-        }
-      });
-    });
-  });
-});
+//     dbo.collection(TABLE_PAYMENTS).insertOne({ _id : purchase_id, user_id : id, event_id, timestamp : new Date()}, (err)=>{
+//       if(err) return;
+//       dbo.collection(TABLE_EVENTS).updateOne({ _id : event_id}, { $addToSet: { enrollees : id }  }, (err, result)=>{
+//         if(result){
+//           dbo.collection(TABLE_USERS).updateOne({ _id : id }, { $addToSet: { events : event_id }  }, (err, results) => {
+//             console.log(err, results);
+//             if(err)
+//               return res.json({
+//                 error: true,
+//                 mssg : err
+//               });
+//             return res.json({
+//               error : false,
+//               data : { _id : purchase_id, user_id : id, event_id, timestamp : new Date()}
+//             });
+//           });
+//         } else {
+//           return res.json({
+//             error: true,
+//             mssg: err
+//           });
+//         }
+//       });
+//     });
+//   });
+// });
 
 /*
   * API end point to get event list of a channel
@@ -423,7 +440,7 @@ router.post("/events/user/get-channel-event-list", verifyRequest, (req, res) => 
     }
   };
 
-  dbo.collection(TABLE_EVENTS).aggregate([query_data, match]).toArray( (err, result) => {
+  dbo_events.collection(TABLE_EVENTS).aggregate([query_data, match]).toArray( (err, result) => {
     if(err) return res.json({
       error: true,
       mssg: err
@@ -434,7 +451,7 @@ router.post("/events/user/get-channel-event-list", verifyRequest, (req, res) => 
     });
     const event_list = result.map(a => a._id);
     if(event_list.length === 0) return;
-    dbo.collection(TABLE_EVENTS).updateMany(
+    dbo_events.collection(TABLE_EVENTS).updateMany(
       { _id: { $in: event_list } },
       { $addToSet: { "reach" : { id, timestamp: new Date() } } }
     );
