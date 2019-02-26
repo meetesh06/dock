@@ -39,6 +39,8 @@ const dbo_events = db_events.getDb();
 
 const templates = require("../../templates");
 const TEMPLATE_INVITE = templates.TEMPLATE_INVITE;
+const TEMPLATE_MESSAGE = templates.TEMPLATE_MESSAGE;
+const TEMPLATE_WELCOME = templates.TEMPLATE_WELCOME;
 
 router.use(bodyParser.json());
 router.use(bodyParser.urlencoded({ extended: true }));
@@ -123,10 +125,22 @@ router.post("/admin/create-channel", (req, res) => {
                   mssg: err.message
                 });
               }
+              const html = {
+                content: TEMPLATE_WELCOME(creatorName)
+              };
+              sendEmailHtml(
+                creatorEmail,
+                `Campus Story - Congratulations ${creatorName}`,
+                html,
+                (err) => {
+                  console.log(err);
+                }
+              );
               return res.json({
                 error: false,
                 mssg: "Created Successfully"
               });
+              
             });
           });
         }
@@ -452,6 +466,56 @@ router.post("/admin/email-invite", (req, res) => {
       sendEmailHtml(
         email,
         "Welcome to Campus Story",
+        html,
+        (err) => {
+          if(err) {
+            return res.json({
+              error: true,
+              mssg: "Token Verification failed."
+            });
+          }
+          return res.json({
+            error: false,
+            mssg: "Email Sent Successfully."
+          });
+        }
+      );
+    }
+  });
+});
+
+router.post("/admin/email-message", (req, res) => {
+  if (!req.body) return res.json({
+    error: true,
+    mssg: "missing fields"
+  });
+  const email = req.body.email;
+  const message = req.body.message;
+  const name_1 = req.body.name_1;
+  const name_2 = req.body.name_2;
+  if(
+    email === undefined ||
+    name_1 === undefined ||
+    name_2 === undefined ||
+    message === undefined
+  ) res.json({
+    error: true,
+    mssg: "Invalid Request"
+  });
+
+  verifySuperToken(req, (err, decoded) => {
+    if(err) {
+      return res.json({
+        error: true,
+        mssg: "Token Verification failed."
+      });
+    } else {
+      const html = {
+        content: TEMPLATE_MESSAGE(name_1, name_2, message)
+      };
+      sendEmailHtml(
+        email,
+        "Campus Story - Message for you",
         html,
         (err) => {
           if(err) {

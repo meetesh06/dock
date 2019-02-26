@@ -20,18 +20,18 @@ admin.initializeApp({
 });
 
 const smtpTransport = nodemailer.createTransport({
-  host: "sg1-ls1.a2hosting.com",
+  host: "sg1-ls2.a2hosting.com",
   port: 465,
   secure: true,
   auth: {
-    user: "support@mycampusdock.com",
+    user: "admin@mycampusdock.chat",
     pass: "D@ckD@ck"
   }
 });
 
 exports.sendEmailHtml = function(reciever, subject, html, callback) {
   var mailOptions = {
-    from: "\"Campus Story\" <support@mycampusdock.com>",
+    from: "\"Campus Story\" <admin@mycampusdock.chat>",
     to: reciever,
     subject: subject,
     html

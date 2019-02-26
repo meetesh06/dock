@@ -122,7 +122,7 @@ router.post("/channels/manager/create-post", verifyRequest, (req, res) => {
             content: JSON.stringify(query_data)
           },
           notification : {
-            body : "Tap to know more | Campus Story",
+            body : `New post in ${channel_name}`,
             title : ""+query_data["message"]
           }
         };
@@ -218,7 +218,7 @@ router.post("/channels/manager/create-image-post", verifyRequest, (req, res) => 
                 content: JSON.stringify(query_data)
               },
               notification : {
-                body : "Tap to know more | Campus Story",
+                body : `New post in ${channel_name}`,
                 title : ""+query_data["message"]
               }
             };
@@ -319,7 +319,7 @@ router.post("/channels/manager/create-video-post", verifyRequest, (req, res) => 
                 content: JSON.stringify(query_data)
               },
               notification : {
-                body : "Tap to know more | Campus Story",
+                body : `New post in ${channel_name}`,
                 title : ""+query_data["message"]
               }
             };
