@@ -454,7 +454,7 @@ router.post("/channels/user/fetch-channel-users", verifyRequest, (req, res) => {
 */
 router.post("/channels/user/fetch-poll-stats", verifyRequest, (req, res) => {
   const _id = req.body._id;
-  dbo_static.collection(TABLE_ACTIVITY).findOne({_id}, (err, result) =>{
+  dbo_activities.collection(TABLE_ACTIVITY).findOne({_id}, (err, result) =>{
     if(err)
       return res.json({
         error : true,
@@ -485,12 +485,12 @@ router.post("/channels/user/answer-poll", verifyRequest, (req, res) => {
     });
 
   let dope = "options."+option;
-  dbo_static.collection(TABLE_ACTIVITY).update({ _id }, { $addToSet: { [dope] : id }  }, (err) => {
+  dbo_activities.collection(TABLE_ACTIVITY).update({ _id }, { $addToSet: { [dope] : id }  }, (err) => {
     if(err) return res.json({
       error: true,
       mssg: err
     });
-    dbo_static.collection(TABLE_ACTIVITY).findOne({_id}, (err, result) =>{
+    dbo_activities.collection(TABLE_ACTIVITY).findOne({_id}, (err, result) =>{
       if(err)
         return res.json({
           error : true,
