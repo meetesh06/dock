@@ -82,7 +82,7 @@ Promise.all([db_diagnostics, db_activities, db_users, db_static, db_events, db_n
     const router = express.Router();
 
     //api specific routes
-    router.get("*", function(req, res) {
+    router.get("/*", function(req, res) {
       res.sendFile(path.resolve(__dirname,"public/index.html"));
     });
   
