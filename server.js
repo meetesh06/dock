@@ -102,7 +102,7 @@ Promise.all([db_diagnostics, db_activities, db_users, db_static, db_events, db_n
     app.use("/admin", router);
   
     app.listen(PORT, HOST, () => {
-      console.log("Dock API Server is live on http://"+HOST+":"+PORT);
+      console.log("Campus Story API Server is live on http://"+HOST+":"+PORT);
     });
   })
   .catch((err) => {

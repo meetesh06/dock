@@ -70,10 +70,13 @@ router.post("/admin/create-channel", (req, res) => {
       const private = req.body.private;
       const official = req.body.official;
       const category = req.body.category;
+
       const creatorName = req.body.creatorName;
-      const creatorEmail = req.body.creatorEmail;
+      const creatorUserId= req.body.creatorEmail;
+      const creatorEmail= req.body.creatorEmail; /* Change the body param name to user id*/
       const creatorPassword = req.body.creatorPassword;
-      if(helpers.isUndefined([name, description, private, official, category, creatorName, creatorEmail, creatorPassword]))return res.json({
+
+      if(helpers.isUndefined([name, description, private, official, category, creatorName, creatorEmail, creatorUserId, creatorPassword]))return res.json({
         error: true,
         mssg: "missing fields"
       });
@@ -91,11 +94,13 @@ router.post("/admin/create-channel", (req, res) => {
           });
         } else {
           dbo_users.collection(TABLE_USERS_ADMIN).insertOne({
+            _id : creatorEmail, /* only one account with one email */
             email: creatorEmail,
+            user_id : creatorUserId,
             password: passwordHash.generate(creatorPassword),
             college: decoded.college,
             channel_id: id,
-            authority: 0
+            authority: 100, /* TYPE 100 for owner 101 for moderator */
           }, (err) => {
             if(err) return res.json({
               error: true,
@@ -110,12 +115,13 @@ router.post("/admin/create-channel", (req, res) => {
               category,
               creator: creatorName,
               created_on: new Date(),
+              creator_user_id : creatorUserId,
               creator_email: creatorEmail,
               media: ["channels/"+media],
               parent: decoded.email,
               followers: [],
-              channel_visits : 0,
-              story_views : 0,
+              reactions : 0,
+              streak : 0,
               last_updated : new Date(),
               college: decoded.college
             }, function(err) {
@@ -418,7 +424,7 @@ router.post("/admin/add-to-trending", (req, res) => {
             college: data.college
           };
           dbo_events.collection(TABLE_TRENDING_EVENTS).update(
-            { _id }, { $set: params }, { upsert: true }, function(err, data) {
+            { _id }, { $set: params }, { upsert: true }, function(err) {
               if (err) {
                 return res.json({
                   error: true,
@@ -453,7 +459,7 @@ router.post("/admin/email-invite", (req, res) => {
     mssg: "Invalid Request"
   });
 
-  verifySuperToken(req, (err, decoded) => {
+  verifySuperToken(req, (err) => {
     if(err) {
       return res.json({
         error: true,
@@ -503,7 +509,7 @@ router.post("/admin/email-message", (req, res) => {
     mssg: "Invalid Request"
   });
 
-  verifySuperToken(req, (err, decoded) => {
+  verifySuperToken(req, (err) => {
     if(err) {
       return res.json({
         error: true,

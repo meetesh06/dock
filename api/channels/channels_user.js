@@ -13,18 +13,8 @@ const dbo_static = db_static.getDb();
 const db_users = require("../../db_users");
 const dbo_users = db_users.getDb();
 
-// const db_diag = require("../../db_diag");
-// const dbo_diag = db_diag.getDb();
-
 const db_activities = require("../../db_activities");
 const dbo_activities = db_activities.getDb();
-
-// const db_events = require("../../db_events");
-// const dbo_events = db_events.getDb();
-
-// const db_notifications = require("../../db_notifications");
-// const dbo_notifications = db_notifications.getDb();
-
 
 const router = express.Router();
 
@@ -44,56 +34,54 @@ const verifyRequest = function (req, res, next) {
 };
 
 /*
-  * API end point to follow a channel, update DB with the userid
-  * Requires (TOKEN, channel_id)
-  * Returns (ACKNOWLEDGEMENT)
-*/
-router.post("/channels/update-read", verifyRequest, (req, res) => {
-  const activity_list = req.body.activity_list;
-  if( activity_list === undefined ) return res.json({
-    error : true,
-    mssg : "Invalid Request"
-  });
-  const list = JSON.parse(activity_list);
-
-  dbo_activities.collection(TABLE_ACTIVITY).updateMany({ _id : { $in: list }  }, { "$addToSet": { "views": req.decoded } }, ()=>{
-    return res.json({
-      error : false
-    });
-  });
-});
-
-/*
   * API end point to view similar tags
   * Requires (TOKEN, tag)
   * Returns (array)
 */
 router.post("/channels/user/collect-tag", verifyRequest, (req, res) => {
-  const tag = req.body.tag;
-  if(tag === undefined || tag === ""){
+  const decoded = req.decoded;
+  const _id = decoded.id;
+
+  const hashtag = req.body.hashtag;
+  if(hashtag === undefined || hashtag === ""){
     return res.json({
       error : true,
       mssg : "invalid request"
     });
   }
+
   const query_data =
     {
       $project: {
         _id: 1,
-        type: 1,
-        timestamp : 1, 
-        channel: 1,
-        channel_name: 1,
-        category: 1,
+        reach: { $size: "$reach" },
         views: { $size: "$views" },
-        validity : 1,
+        type: 1,
+        timestamp: 1,
+        channel: 1,
+        audience: 1,
+        category : 1,
         message: 1,
-        media : 1,
-        tag : 1
+        config : 1,
+        reactions : 1,
+        reaction_type : 1,
+        my_reactions: {
+          $filter: {
+            input: "$reactors",
+            as: "reactors",
+            cond: { $eq: [ "$$reactors._id", _id ] }
+          }
+        },
+        name: 1,
+        media: 1,
+        channel_name: 1,
+        hashtag : 1,
+        url : 1,
+        event : 1
       }
     };
-  const match = { $match : { tag}};
-  const sort = { $sort : {timestamp : -1, views : -1}};
+  const match = { $match : {hashtag}};
+  const sort = { $sort : {timestamp : -1, reactions : -1, views : -1}};
   dbo_activities.collection(TABLE_ACTIVITY).aggregate([query_data, match, sort]).toArray((err, result)=>{
     if(err){
       return res.json({
@@ -110,20 +98,20 @@ router.post("/channels/user/collect-tag", verifyRequest, (req, res) => {
 
 /*
   * API end point to update story views
-  * Requires (TOKEN, array of channels) [{_id : 'something', count : 5}]
+  * Requires (TOKEN, _id of story)
   * Returns (ACKNOWLEDGEMENT)
 */
 router.post("/channels/update-story-views", verifyRequest, (req, res) => {
-  const views_array = req.body.views;
-  if(views_array === undefined ) 
+  const _id = req.body._id;
+
+  if(_id === undefined ) 
     return res.json({
       error: true,
       mssg : "Invalid Request"
     });
-  let views = JSON.parse(views_array);
-  for(var i=0; i<views.length; i++){
-    updateField("story_views", views[i]._id, views[i].count);
-  }
+
+  const id = req.decoded.id;
+  updateField("story_views", _id, id);
 
   return res.json({
     error : false
@@ -131,22 +119,41 @@ router.post("/channels/update-story-views", verifyRequest, (req, res) => {
 });
 
 /*
-  * API end point to follow a channel, update DB with the userid
-  * Requires (TOKEN, channel_id)
+  * API end point to update channel visits
+  * Requires (TOKEN, _id of story)
   * Returns (ACKNOWLEDGEMENT)
 */
 router.post("/channels/update-channel-visits", verifyRequest, (req, res) => {
-  const visits_array = req.body.visits;
-  if(visits_array === undefined ) 
+  const _id = req.body._id;
+  if(_id === undefined ) 
     return res.json({
       error: true,
       mssg : "Invalid Request"
     });
-    
-  let visits = JSON.parse(visits_array);
-  for(var i=0; i<visits.length; i++){
-    updateField("channel_visits", visits[i]._id, visits[i].count);
-  }
+
+  const id = req.decoded.id;
+  updateField("channel_visits", _id, id);
+
+  return res.json({
+    error : false
+  });
+});
+
+/*
+  * API end point to update channel visits
+  * Requires (TOKEN, _id of story)
+  * Returns (ACKNOWLEDGEMENT)
+*/
+router.post("/channels/update-action-taken", verifyRequest, (req, res) => {
+  const _id = req.body._id;
+  if(_id === undefined ) 
+    return res.json({
+      error: true,
+      mssg : "Invalid Request"
+    });
+
+  const id = req.decoded.id;
+  updateField("action_taken", _id, id);
 
   return res.json({
     error : false
@@ -256,9 +263,59 @@ router.post("/channels/user/unfollow", verifyRequest, (req, res) => {
 });
 
 /*
+  * API end point to unfollow a channel, update DB with the userid
+  * Requires (TOKEN, channel_id)
+  * Returns (ACKNOWLEDGEMENT)
+*/
+router.post("/channels/user/react", verifyRequest, (req, res) => {
+  const decoded = req.decoded;
+  const id = decoded.id;
+  const _id = req.body._id;
+  const channel_id = _id.split("-")[0];
+  const count_str = req.body.count;
+  const count = parseInt(count_str);
+
+  dbo_activities.collection(TABLE_ACTIVITY).update({ _id}, {$inc : {reactions : parseInt(count)}}, (err)=>{
+    if(err)
+      return res.json({
+        error : true
+      });
+    dbo_static.collection(TABLE_CHANNELS).update({ _id : channel_id}, {$inc : {reactions : parseInt(count)}}, (err)=>{
+      if(err)
+        return res.json({
+          error : true
+        });
+      dbo_activities.collection(TABLE_ACTIVITY).update({ _id, reactors: { $elemMatch: { _id: id}}}, {$inc : { "reactors.$.count" : count}}, (err, result)=>{
+        if(err)
+          return res.json({
+            error : true,
+          });
+        if(result.result.nModified > 0){
+          return res.json({
+            error : false
+          });
+        } else {
+          dbo_activities.collection(TABLE_ACTIVITY).update({ _id}, {$addToSet : { reactors: {_id : id, count}}}, (err)=>{
+            if(err)
+              return res.json({
+                error : true,
+              });
+            return res.json({
+              error : false
+            });
+          });
+        }
+      });
+    });
+  });
+});
+
+/*
+  * DEPRECATED
   * API end point to fetch details for a channel
   * Requires (TOKEN, channel_id)
   * Returns (ACKNOWLEDGEMENT, CHANNEL DATA OBJECT - CENSORED) 
+  * DEPRECATED
 */
 router.post("/channels/user/fetch-channel", verifyRequest, (req, res) => {
   const decoded = req.decoded;
@@ -291,8 +348,8 @@ router.post("/channels/user/fetch-channel", verifyRequest, (req, res) => {
 
 
 /*
-  * API end point to fetch event data
-  * Requires (TOKEN, event_id)
+  * API end point to fetch channel data
+  * Requires (TOKEN, channel_id)
   * Returns (event_data_object, UPDATES_VIEWS)
 */
 router.post("/channels/user/fetch-channel-data", verifyRequest, (req, res) => {
@@ -311,11 +368,13 @@ router.post("/channels/user/fetch-channel-data", verifyRequest, (req, res) => {
       description : 1,
       category : 1,
       creator : 1,
+      reactions : 1,
       priority : 1,
       private : 1,
       college: 1
     }
   };
+  
   const match = { $match : { _id }};
 
   dbo_static.collection(TABLE_CHANNELS).aggregate([query_data, match]).toArray( (err, result) => {
@@ -324,188 +383,10 @@ router.post("/channels/user/fetch-channel-data", verifyRequest, (req, res) => {
   });
 });
 
-
-/*
-  * API end point to fetch event data
-  * Requires (TOKEN, event_id)
-  * Returns (event_data_object, UPDATES_VIEWS)
-*/
-// router.post("/channels/user/fetch-channel-data", verifyRequest, (req, res) => {
-//   let _id = req.body._id;
-//   if ( _id === undefined ) return res.json({
-//     error: true,
-//     mssg: "missing fields"
-//   });
-
-//   const query_data ={
-//     $project: {
-//       _id: 1,
-//       name: 1,
-//       followers: { $size: "$followers" },
-//       media : 1,
-//       description : 1,
-//       category : 1,
-//       // category_found : { $in : ["$category", category_list] },
-//       // channel_already : { $in : ["$_id", channels] },
-//       creator : 1,
-//       priority : 1,
-//       college: 1
-//     }
-//   };
-//   // const sort = { $sort : { followers : -1 }};
-//   const match = { $match : { _id }};
-//   // const limit = { $limit : parseInt(count)};
-
-//   dbo.collection(TABLE_CHANNELS).aggregate([query_data, match]).toArray( (err, result) => {
-//     if(err) return res.json({error : true, mssg  : err});
-//     return res.json({error : false, data : result});
-//   });
-// });
-
-
-router.post("/channels/user/fetch-college-channels", verifyRequest, (req, res) => {
-  const decoded = req.decoded;
-  const id = decoded.id;
-  let college = req.body.college;
-
-  if ( college === undefined ) return res.json({
-    error: true,
-    mssg: "Missing Params"
+function updateField(field, _id, id){
+  dbo_activities.collection(TABLE_ACTIVITY).update({ _id }, { $addToSet : {[field] : id} }, (err)=>{
+    if(err) console.log(err);
   });
-
-  const query_data =
-    {
-      $project: {
-        _id: 1,
-        name: 1,
-        followers: 1,
-        requests: 1,
-        media : 1,
-        description : 1,
-        category : 1,
-        creator : 1,
-        priority : 1
-      }
-    };
-  
-  const match = { 
-    $match: {
-      $and: [
-        { creator : college }
-      ]
-    }
-  };
-
-  dbo_static.collection(TABLE_CHANNELS).aggregate([query_data, match]).toArray( (err, result) => {
-    if(err) return res.json({
-      error: true,
-      mssg: err
-    });
-
-    let output = [];
-    for(var i=0; i<result.length; i++){
-      let e = result[i];
-      e.requests = e.requests === undefined ? [] : e.requests;
-      e.followed = e.followers.includes(id);
-      e.requested = e.requests.includes(id);
-      e.followers = e.followers.length;
-      output.push(e);
-    }
-    
-    res.json({
-      error : false,
-      data : output
-    });
-  });
-});
-
-
-/*
-  * API end point to fetch users for a channel
-  * Requires (TOKEN, channel_id)
-  * Returns (ACKNOWLEDGEMENT, CHANNEL DATA OBJECT - CENSORED) 
-*/
-router.post("/channels/user/fetch-channel-users", verifyRequest, (req, res) => {
-  let channel_id = req.body.channel_id;
-
-  if ( channel_id === undefined ) return res.json({
-    error: true,
-    mssg: "invalid request"
-  });
-  
-  dbo_static.collection(TABLE_CHANNELS).findOne({_id : channel_id}, (err, result) =>{
-    const followers = result.followers;
-    if(err)
-      return res.json({
-        error : true,
-        mssg : err
-      });
-    return res.json({
-      error : false,
-      data : followers
-    });
-  });
-});
-
-/*
-  * API end point to fetch details for a channel
-  * Requires (TOKEN, channel_id)
-  * Returns (ACKNOWLEDGEMENT, CHANNEL DATA OBJECT - CENSORED) 
-*/
-router.post("/channels/user/fetch-poll-stats", verifyRequest, (req, res) => {
-  const _id = req.body._id;
-  dbo_activities.collection(TABLE_ACTIVITY).findOne({_id}, (err, result) =>{
-    if(err)
-      return res.json({
-        error : true,
-        mssg : err
-      });
-    return res.json({
-      error : false,
-      data : result
-    });
-  });
-});
-
-/*
-  * API end point to answer poll
-  * Requires (TOKEN, poll_id, option)
-  * Returns (ACKNOWLDGEMENT)
-*/
-router.post("/channels/user/answer-poll", verifyRequest, (req, res) => {
-  const decoded = req.decoded;
-  const id = decoded.id;
-  let _id = req.body._id;
-  let option = req.body.option;
-
-  if( _id === undefined || option === undefined ) 
-    return res.json({
-      error: true,
-      mssg: "Invalid Request"
-    });
-
-  let dope = "options."+option;
-  dbo_activities.collection(TABLE_ACTIVITY).update({ _id }, { $addToSet: { [dope] : id }  }, (err) => {
-    if(err) return res.json({
-      error: true,
-      mssg: err
-    });
-    dbo_activities.collection(TABLE_ACTIVITY).findOne({_id}, (err, result) =>{
-      if(err)
-        return res.json({
-          error : true,
-          mssg : err
-        });
-      return res.json({
-        error : false,
-        data : result
-      });
-    });
-  });
-});
-
-function updateField(field, _id, count){
-  dbo_static.collection(TABLE_CHANNELS).update({ _id }, { "$inc": {[field] : count}});
   return;
 }
 

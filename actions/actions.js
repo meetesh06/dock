@@ -7,16 +7,12 @@ const imagemin = require("imagemin");
 const imageminWebp = require("imagemin-webp");
 const constants = require("../constants");
 const admin = require("firebase-admin");
-const db = require("../db");
 const serviceAccount = require("./admincred.json");
-const TABLE_SCOPE = constants.TABLE_SCOPE;
 const MAX_RETRIES_MESSAGING = constants.MAX_RETRIES_MESSAGING;
-const dbo = db.getDb();
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: "https://campus-story-75039.firebaseio.com"
-  // databaseURL: "https://mycampusdock-12f5a.firebaseio.com"
 });
 
 const smtpTransport = nodemailer.createTransport({
@@ -105,38 +101,6 @@ exports.saveVideo = function(file, callback) {
   });
 };
 
-exports.updateScopeAsync = function(audience, type) {
-  // let i;
-  /* 0 - event */
-  /* 1 - post */
-  /* 2 - poll */
-  // let current_hash = "d_hash";
-  // switch (type) {
-  // case 0:
-  //   current_hash = "event_hash";
-  //   break;
-  // case 1:
-  //   current_hash = "post";
-  //   break;
-  // case 2:
-  //   current_hash = "poll";
-  //   break;
-  // default:
-  //   return;
-  // }
-  // let params = {};
-  // params[current_hash] = random();
-  // for (i = 0; i < audience.length; i++) {
-  //   dbo.collection(TABLE_SCOPE).update({
-  //     name: audience[i]
-  //   }, {
-  //     $set: params
-  //   }, {
-  //     upsert: true
-  //   });
-  // }
-};
-
 exports.sendToScope = function(scopeArray, payload) {
   let currentQueue = [...scopeArray];
   let i = 0;
@@ -210,7 +174,7 @@ exports.verifyAnonymousToken = function(req, callback) {
   });
 };
 
-// function
+/* function */
 function sendToIndividual(scope, payload, retries) {
   if (retries == MAX_RETRIES_MESSAGING) {
     console.log("scope: " + scope + " permanently failed");

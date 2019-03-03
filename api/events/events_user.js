@@ -4,46 +4,18 @@ const actions = require("../../actions/actions");
 const constants = require("../../constants");
 const verifyAnonymousToken = actions.verifyAnonymousToken;
 const isValidDate = actions.isValidDate;
-
 const TABLE_EVENTS = constants.TABLE_EVENTS;
 const TABLE_USERS = constants.TABLE_USERS;
 const TABLE_TREDNING_EVENTS = constants.TABLE_TRENDING_EVENTS;
-// const TABLE_PAYMENTS = constants.TABLE_PAYMENTS;
-
 const router = express.Router();
-
-// const db_static = require("../../db_static");
-// const dbo_static = db_static.getDb();
-
 const db_users = require("../../db_users");
 const dbo_users = db_users.getDb();
-
-// const db_diag = require("../../db_diag");
-// const dbo_diag = db_diag.getDb();
-
-// const db_activities = require("../../db_activities");
-// const dbo_activities = db_activities.getDb();
-
 const db_events = require("../../db_events");
 const dbo_events = db_events.getDb();
 
-// const db_notifications = require("../../db_notifications");
-// const dbo_notifications = db_notifications.getDb();
 
 /* HELPER */
 const verifyRequest = function (req, res, next) {
-  // verifyUserToken(req, (err, decoded) => {
-  //   if(err) {
-  //     return res.json({
-  //       error: true,
-  //       mssg: "Token Verification failed."
-  //     });
-  //   } else {
-  //     req.authorized = true;
-  //     req.decoded = decoded;
-  //   }
-  //   next();
-  // });
   verifyAnonymousToken(req, (err, decoded) => {
     if(err) {
       return res.json({
@@ -94,16 +66,11 @@ router.post("/events/user/get-event-list", verifyRequest, (req, res) => {
         description: 1,
         location: 1,
         category: 1,
-        tags: 1,
         reg_link: 1,
-        reg_start: 1,
-        reg_end: 1,
         date: 1,
         time: 1,
         contact_details: 1,
         faq: 1,
-        price: 1,
-        available_seats: 1,
         audience: 1,
         media: 1,
       }
@@ -277,14 +244,9 @@ router.post("/events/user/fetch-event-data", verifyRequest, (req, res) => {
         description: 1,
         location: 1,
         category: 1,
-        tags: 1,
-        reg_start: 1,
-        reg_end: 1,
         date: 1,
         contact_details: 1,
         faq: 1,
-        price: 1,
-        available_seats: 1,
         audience: 1,
         media: 1,
         reg_link: 1,
@@ -327,134 +289,6 @@ router.post("/events/user/fetch-event-data", verifyRequest, (req, res) => {
         mssg : "No such event found"
       });
     }
-  });
-});
-
-/*
-  * API end point to enroll user to an event
-  * Requires (TOKEN, event_id)
-  * Returns (ACKNOWLEDGEMENT)
-*/
-// router.post("/events/user/purchase", verifyRequest, (req, res) => {
-//   const decoded = req.decoded;
-//   const id = decoded.id;
-//   const event_id = req.body._id;
-
-//   if(event_id === undefined) {
-//     return res.json({
-//       error : true,
-//       mssg : "Missing Fields"
-//     });
-//   }
-
-//   let purchase_id = UID(32);
-
-//   dbo.collection(TABLE_PAYMENTS).findOne({event_id, user_id : id}, (err, result) =>{
-//     if(err) return res.json({
-//       error: true,
-//       mssg : err
-//     });
-    
-//     if(result) return res.json({
-//       error : false,
-//       data : result
-//     });
-
-//     dbo.collection(TABLE_PAYMENTS).insertOne({ _id : purchase_id, user_id : id, event_id, timestamp : new Date()}, (err)=>{
-//       if(err) return;
-//       dbo.collection(TABLE_EVENTS).updateOne({ _id : event_id}, { $addToSet: { enrollees : id }  }, (err, result)=>{
-//         if(result){
-//           dbo.collection(TABLE_USERS).updateOne({ _id : id }, { $addToSet: { events : event_id }  }, (err, results) => {
-//             console.log(err, results);
-//             if(err)
-//               return res.json({
-//                 error: true,
-//                 mssg : err
-//               });
-//             return res.json({
-//               error : false,
-//               data : { _id : purchase_id, user_id : id, event_id, timestamp : new Date()}
-//             });
-//           });
-//         } else {
-//           return res.json({
-//             error: true,
-//             mssg: err
-//           });
-//         }
-//       });
-//     });
-//   });
-// });
-
-/*
-  * API end point to get event list of a channel
-  * Requires (TOKEN, channel)
-  * Returns (event_list, UPDATES_REACH)
-*/
-router.post("/events/user/get-channel-event-list", verifyRequest, (req, res) => {
-  const decoded = req.decoded;
-  const id = decoded.id;
-
-  let channel_id = req.body.channel_id;
-
-  if ( channel_id === undefined ) return res.json({
-    error: true,
-    mssg: "invalid request"
-  });
-    
-  const query_data =
-    {
-      $project: {
-        _id: 1,
-        name: 1,
-        email: 1,
-        college: 1,
-        channel: 1,
-        reach: { $size: "$reach" },
-        views: { $size: "$views" },
-        enrollees: { $size: "$enrollees" },
-        timestamp: 1,
-        title: 1,
-        description: 1,
-        location: 1,
-        category: 1,
-        tags: 1,
-        reg_start: 1,
-        reg_end: 1,
-        date: 1,
-        contact_details: 1,
-        faq: 1,
-        price: 1,
-        available_seats: 1,
-        audience: 1,
-        media: 1,
-      }
-    };
-    
-  const match = { 
-    $match: {
-      $and: [ 
-        { channel : channel_id }
-      ]
-    }
-  };
-
-  dbo_events.collection(TABLE_EVENTS).aggregate([query_data, match]).toArray( (err, result) => {
-    if(err) return res.json({
-      error: true,
-      mssg: err
-    });
-    res.json({
-      error: false,
-      data: result
-    });
-    const event_list = result.map(a => a._id);
-    if(event_list.length === 0) return;
-    dbo_events.collection(TABLE_EVENTS).updateMany(
-      { _id: { $in: event_list } },
-      { $addToSet: { "reach" : { id, timestamp: new Date() } } }
-    );
   });
 });
 

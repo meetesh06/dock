@@ -54,7 +54,7 @@ const verifyRequest = function (req, res, next) {
   * Returns (results)
 */
 router.post("/notifications/manager/create", verifyRequest, (req, res) => {
-  const uid = UID(12);
+  const uid = UID(16);
   const decoded = req.decoded;
 
   const message = req.body.message;

@@ -1,12 +1,8 @@
 module.exports = Object.freeze({
   TABLE_EVENTS : "events",
-  TABLE_SCOPE : "scopes",
   TABLE_USERS : "users",
-  TABLE_POSTS : "posts",
-  TABLE_POLLS : "polls",
   TABLE_LOGS : "logs",
   TABLE_TRACKS : "tracks",
-  TABLE_PAYMENTS : "payments",
   TABLE_TOKENS : "tokens",
   TABLE_CHANNELS : "channels",
   TABLE_COLLEGES : "colleges",
@@ -17,4 +13,5 @@ module.exports = Object.freeze({
   TABLE_CATEGORIES : "categories",
   TABLE_TRENDING_EVENTS : "trending_events",
   MAX_RETRIES_MESSAGING : 5,
+  STORIES_VALID_THRESHOLD : 3
 });

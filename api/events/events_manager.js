@@ -35,7 +35,7 @@ const verifyRequest = function (req, res, next) {
 */
 router.post("/events/manager/get-event-list", verifyRequest, (req, res) => {
   const decoded = req.decoded;
-  const email = decoded.email;
+  const channel = decoded.channel;
   let last_updated = req.body.last_updated;
 
   if ( last_updated === undefined ) 
@@ -55,20 +55,18 @@ router.post("/events/manager/get-event-list", verifyRequest, (req, res) => {
         college: 1,
         reach: { $size: "$reach" },
         views: { $size: "$views" },
+        interested: { $size: "$interested" },
+        enrollees_size : { $size : "$enrollees"},
         enrollees: 1,
         timestamp: 1,
         title: 1,
         description: 1,
         location: 1,
         category: 1,
-        tags: 1,
-        reg_start: 1,
-        reg_end: 1,
         date: 1,
         contact_details: 1,
         faq: 1,
-        price: 1,
-        available_seats: 1,
+        reg_link : 1,
         audience: 1,
         media: 1,
         time: 1,
@@ -80,7 +78,7 @@ router.post("/events/manager/get-event-list", verifyRequest, (req, res) => {
   const match = { 
     $match: {
       $and: [ 
-        { email }
+        { channel }
       ]
     }
   };
@@ -109,9 +107,6 @@ router.post("/events/manager/get-event-list", verifyRequest, (req, res) => {
   * Returns (event_data_object)
 */
 router.post("/events/manager/fetch-event-data", verifyRequest, (req, res) => {
-  const decoded = req.decoded;
-  const email = decoded.email;
-
   let _id = req.body._id;
 
   if ( _id === undefined ) 
@@ -127,22 +122,19 @@ router.post("/events/manager/fetch-event-data", verifyRequest, (req, res) => {
         email: 1,
         reach: { $size: "$reach" },
         views: { $size: "$views" },
+        enrollees_size: { $size: "$enrollees" },
+        interested: { $size: "$interested" },
         enrollees: 1,
         title: 1,
         description: 1,
         location: 1,
         category: 1,
-        tags: 1,
-        reg_start: 1,
-        reg_end: 1,
         date: 1,
         contact_details: 1,
         faq: 1,
-        price: 1,
-        available_seats: 1,
+        reg_link : 1,
         audience: 1,
         media: 1,
-        name: 1,
         time: 1,
         channel_name: 1,
         timestamp: 1,
@@ -154,7 +146,6 @@ router.post("/events/manager/fetch-event-data", verifyRequest, (req, res) => {
   const match = { 
     $match: {
       $and: [ 
-        { email },
         { _id }
       ]
     }

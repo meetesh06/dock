@@ -7,30 +7,13 @@ const constants = require("../../constants");
 const TABLE_EVENTS = constants.TABLE_EVENTS;
 const bodyParser = require("body-parser");
 const verifyManagerToken = actions.verifyManagerToken;
-const verifyCommonToken = actions.verifyCommonToken;
 const UID = actions.UID;
 const saveFiles = actions.saveFiles;
 const sendToScope = actions.sendToScope;
 const sendEmailHtml = actions.sendEmailHtml;
 
-// const db_static = require("../../db_static");
-// const dbo_static = db_static.getDb();
-
-// const db_users = require("../../db_users");
-// const dbo_users = db_users.getDb();
-
-// const db_diag = require("../../db_diag");
-// const dbo_diag = db_diag.getDb();
-
-// const db_activities = require("../../db_activities");
-// const dbo_activities = db_activities.getDb();
-
 const db_events = require("../../db_events");
 const dbo_events = db_events.getDb();
-
-// const db_notifications = require("../../db_notifications");
-// const dbo_notifications = db_notifications.getDb();
-
 
 const router = express.Router();
 
@@ -50,41 +33,23 @@ const verifyRequest = function (req, res, next) {
   });
 };
 
-const verifyRequestCommon = function (req, res, next) {
-  verifyCommonToken(req, (err, decoded) => {
-    if(err) {
-      return res.json({
-        error: true,
-        mssg: "Token Verification failed."
-      });
-    } else {
-      req.authorized = true;
-      req.decoded = decoded;
-    }
-    next();
-  });
-};
-
 router.use(bodyParser.json());
 router.use(bodyParser.urlencoded({ extended: true }));
 
 /*
   * API end point to create an event
-  * Requires (TOKEN, title, description, location, tags, category, reg_start, reg_end, date, time, contact_details, faq, price, available_seats)
+  * Requires (TOKEN, title, description, location, category, date, time, contact_details, faq, reg_link, media)
   * Returns (ACKNOWLDEGEMENT, FIREBASE_EVENT, EMAIL)
 */
 router.post("/events/manager/create", verifyRequest, (req, res) => {
-  console.log(req.body);
-  console.log(req.files);
-  const uid = UID(12);
+  const uid = UID(16);
   const decoded = req.decoded;
   const email = decoded.email;
-  const name = decoded.name;
   const college = decoded.college;
   const channel = decoded.channel;
-  const channel_name = channel.name;
+  const channel_name = decoded.channel_name;
 
-  const _id = channel._id + "-" + uid;
+  const _id = channel + "-" + uid;
   const reach = [];
   const views = [];
   const enrollees = [];
@@ -96,15 +61,10 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
   const description = req.body.description;
   const location = req.body.location;
   const category = req.body.category;
-  const tags = req.body.tags;
-  const reg_start = new Date(req.body.reg_start);
-  const reg_end = new Date(req.body.reg_end);
   const date = new Date(req.body.date);
   const time = new Date(req.body.time);
   const contact_details = req.body.contact_details;
   const faq = req.body.faq;
-  const price = req.body.price;
-  const available_seats = req.body.available_seats;
   const reg_link = req.body.reg_link;
   
   if (
@@ -113,13 +73,8 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
     location === undefined ||
     category === undefined ||
     faq === undefined ||
-    tags === undefined ||
-    reg_start === undefined ||
-    reg_end === undefined ||
     date === undefined ||
-    price === undefined ||
     contact_details === undefined ||
-    available_seats === undefined ||
     time === undefined ||
     reg_link === undefined
   ) {
@@ -128,20 +83,6 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
       mssg: "invalid request 1"
     });
   }
-
-  if(!parseInt(price)) {
-    if(price !== "0") 
-      return res.json({
-        error: true,
-        mssg: "invalid request 2"
-      });
-  }
-
-  if(!parseInt(available_seats))
-    return res.json({
-      error: true,
-      mssg: "invalid request 3"
-    });
   
   if(req.files === undefined || req.files.length === 0) {
     return res.json({
@@ -149,14 +90,12 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
       mssg: "invalid request, no files"
     });
   }
-  console.log("ALL STUFF VALID");
 
-  audience.push(channel._id.trim());
+  audience.push(channel.trim());
   audience.push(category);
 
   const query_data = {
     email,
-    name,
     college,
     _id,
     reach,
@@ -169,17 +108,12 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
     location,
     category,
     channel_name,
-    tags,
-    reg_start,
-    reg_end,
     date,
     time,
     contact_details,
     faq,
-    price,
-    available_seats,
     audience,
-    channel: decoded.channel._id.trim(),
+    channel,
     reg_link
   };
 
@@ -204,14 +138,14 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
           mssg: "successfully created the event"
         });
 
-        sendEventSuccessMail(email, name, _id);
+        sendEventSuccessMail(email, "Creator", _id);
         const payload = {
           data: {
             type: "event",
             content: JSON.stringify(query_data)
           },
           notification : {
-            body : "Tap to know more | Dock",
+            body : "Tap to know more | Campus Story",
             title : ""+query_data["title"]
           }
         };
@@ -222,62 +156,77 @@ router.post("/events/manager/create", verifyRequest, (req, res) => {
 });
 
 /*
-  * indexing style -- db.events.createIndex( { name: "text", college: "text", title: "text", description: "text", category: "text", channel_name: "text", tags: "text" } )
-  * query style -- db.events.find( { $text: { $search: "wild" } } )
-  * API end point to search available channels based on name, description and category
-  * Requires (COMMON TOKEN, channel_id, last_updated)
-  * Returns (results)
+  * API end point to create an event
+  * Requires (TOKEN, title, description, location, category, date, time, contact_details, faq, reg_link, media)
+  * Returns (ACKNOWLDEGEMENT, FIREBASE_EVENT, EMAIL)
 */
-router.post("/events/search", verifyRequestCommon, (req, res) => {
-  // const decoded = req.decoded;
-  let searchQuery = req.body.query;
-  if( searchQuery === undefined ) return res.json({
-    error: true,
-    mssg: "Invalid Request"
-  });
-  const query_data =
-    {
-      $project: {
-        _id: 1,
-        name: 1,
-        email: 1,
-        college: 1,
-        reach: { $size: "$reach" },
-        views: { $size: "$views" },
-        enrollees: 1,
-        timestamp: 1,
-        title: 1,
-        channel : 1, 
-        channel_name : 1, 
-        description: 1,
-        location: 1,
-        category: 1,
-        tags: 1,
-        reg_start: 1,
-        reg_end: 1,
-        date: 1,
-        contact_details: 1,
-        faq: 1,
-        price: 1,
-        available_seats: 1,
-        audience: 1,
-        score : { $meta : "textScore"},
-        media: 1,
-      }
-    };
-  const match = { $match: { $text: { $search: searchQuery } } };
-  const sort = { $sort : {score : -1}};
-  const limit = { $limit : 10};
+router.post("/events/manager/update", verifyRequest, (req, res) => {
+  const decoded = req.decoded;
+  const email = decoded.email;
+  const college = decoded.college;
+  const channel = decoded.channel;
+  const channel_name = decoded.channel_name;
 
-  dbo_events.collection(TABLE_EVENTS).aggregate([match, query_data, sort, limit]).toArray( (err, result) => {
-    if(err) return res.json({
+  const _id = req.body._id;
+  const title = req.body.title;
+  const description = req.body.description;
+  const location = req.body.location;
+  const category = req.body.category;
+  const date = new Date(req.body.date);
+  const time = new Date(req.body.time);
+  const contact_details = req.body.contact_details;
+  const faq = req.body.faq;
+  const reg_link = req.body.reg_link;
+  
+  if (
+    title === undefined ||
+    description === undefined ||
+    location === undefined ||
+    category === undefined ||
+    faq === undefined ||
+    date === undefined ||
+    contact_details === undefined ||
+    time === undefined ||
+    reg_link === undefined
+  ) {
+    return res.json({
       error: true,
-      mssg: err
+      mssg: "invalid request 1"
     });
-    res.json({
+  }
+
+  const query_data = {
+    email,
+    college,
+    _id,
+    title,
+    description,
+    location,
+    category,
+    channel_name,
+    date,
+    time,
+    contact_details,
+    faq,
+    channel,
+    reg_link
+  };
+
+  dbo_events.collection(TABLE_EVENTS).updateOne({ _id}, { $set: query_data }, (err) => {
+    if (err) {
+      return res.json({
+        error: true,
+        mssg: "server side error"
+      });
+    }
+
+    return res.json({
       error: false,
-      data: result
+      mssg: "successfully updated the event"
     });
+
+    /* ADD NOTIFICATIONS HERE */
+  
   });
 });
 
@@ -287,7 +236,7 @@ function sendEventSuccessMail(reciever, name, id) {
   const html = {
     content: TEMPLATE_EVENT(name, id)
   };
-  var subject = "Successfully created a new Event | Dock";
+  var subject = "Successfully created a new Event | Campus Story";
   sendEmailHtml(reciever, subject, html.content);
 }
 
