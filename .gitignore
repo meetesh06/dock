@@ -3,4 +3,5 @@
 *.jpg
 *.png
 *.webp
+*.mp4
 node_modules/
