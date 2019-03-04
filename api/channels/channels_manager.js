@@ -515,6 +515,7 @@ router.post("/channels/manager/fetch-channel-data", verifyRequest, (req, res) =>
         private : 1,
         followers: { $size: "$followers" },
         social_link : 1,
+        category : 1,
         streak : 1,
         authority : 1,
         reactions : 1

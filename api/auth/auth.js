@@ -174,14 +174,6 @@ router.post("/auth/manager/signin", (req, res) => {
             saveToken(token, (err, err_mssg)=>{
               if(!err) return res.json({
                 error: false,
-                data : {
-                  channel: result._id,
-                  channel_name: result.name, 
-                  private : result.private, 
-                  description : result.description,
-                  reactions : result.reactions,
-                  streak : result.streak
-                },
                 token
               });
               else return res.json({

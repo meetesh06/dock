@@ -45,13 +45,18 @@ router.post("/channels/get-story", verifyRequestCommon, (req, res) => {
   const decoded = req.decoded;
   const id = decoded.id;
   let last_updated = "" + moment().add(-1 * constants.STORIES_VALID_THRESHOLD, "days").format();
+  
+  console.log(channel_id, last_updated);
   if( channel_id === undefined || last_updated === undefined) return res.json({
     error: true,
     mssg: "Invalid Request"
   });
 
   fetch_activity(id, channel_id, last_updated, 0, (result)=>{
-    return res.json(result);
+    return res.json({
+      error : result.error,
+      data : result.data
+    });
   });
 });
 
@@ -182,7 +187,6 @@ router.post("/channels/fetch-activity-list", verifyRequestCommon, (req, res) => 
 
 /* HELPER FUNCTION */
 function fetch_activity(_id, channel_id, last_updated, indx, callback){
-  console.log(_id);
   if(last_updated === undefined ) return callback({error : true, indx, mssg : "invalid request"});
   
   last_updated = new Date(last_updated);
