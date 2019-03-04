@@ -195,6 +195,8 @@ router.post("/events/manager/update", verifyRequest, (req, res) => {
     });
   }
 
+  const timestamp = new Date();
+
   const query_data = {
     email,
     college,
@@ -205,6 +207,7 @@ router.post("/events/manager/update", verifyRequest, (req, res) => {
     category,
     channel_name,
     date,
+    timestamp,
     time,
     contact_details,
     faq,
