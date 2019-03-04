@@ -101,6 +101,7 @@ router.post("/admin/create-channel", (req, res) => {
             college: decoded.college,
             channel_id: id,
             authority: 100, /* TYPE 100 for owner 101 for moderator */
+            created_on: new Date(),
           }, (err) => {
             if(err) return res.json({
               error: true,
@@ -122,6 +123,7 @@ router.post("/admin/create-channel", (req, res) => {
               followers: [],
               reactions : 0,
               streak : 0,
+              social_link : "",
               last_updated : new Date(),
               college: decoded.college
             }, function(err) {

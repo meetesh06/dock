@@ -401,24 +401,15 @@ router.post("/channels/manager/create-video-post", verifyRequest, (req, res) => 
 router.post("/channels/manager/get-member-list", verifyRequest, (req, res) => {
   const decoded = req.decoded;
   const channel = decoded.channel;
-  let last_updated = req.body.last_updated;
-
-  if ( last_updated === undefined ) return res.json({
-    error: true,
-    mssg: "invalid request"
-  });
-  
-  last_updated = new Date(last_updated);
   
   const query_data = {
-    "channel._id": channel,
+    channel_id : channel,
+    $project : {
+      _id : 1,
+      name : 1,
+      user_id : 1,
+    }
   };
-
-  if(isValidDate(last_updated)) {
-    query_data["timestamp"] = {
-      $gt: last_updated
-    };
-  }
   
   dbo_users.collection(TABLE_USERS_ADMIN).find(query_data).toArray( (err, result) => {
     if(err) return res.json({
@@ -442,26 +433,26 @@ router.post("/channels/manager/add-member", verifyRequest, (req, res) => {
   const channel = decoded.channel;
   const college = decoded.college;
 
-  const email = req.body.email;
+  const user_id = req.body.user_id;
   const password = req.body.password;
   const name = req.body.name;
-
   const timestamp = new Date();
 
-  if( email === undefined || password === undefined || name === undefined ) return res.json({
+  if( user_id === undefined || password === undefined || name === undefined ) return res.json({
     error: true,
-    mssg: "Invalid Request"
+    mssg: "invalid Request"
   });
 
   const generated_password = passwordHash.generate(password);
-  dbo_users.collection(TABLE_USERS_ADMIN).insertOne({ 
-    email, 
+  dbo_users.collection(TABLE_USERS_ADMIN).insertOne({
+    _id : user_id,
     password: generated_password,
     name,
     college,
-    channel,
-    timestamp
-  }, (err, result) => {
+    channel_id : channel,
+    created_on : timestamp,
+    authority : 101
+  }, (err) => {
     if(err) 
       return res.json({
         error: true,
@@ -469,7 +460,33 @@ router.post("/channels/manager/add-member", verifyRequest, (req, res) => {
       });
     return res.json({
       error: false,
-      data: result
+    });
+  });
+});
+
+/*
+  * API end point to add a new admin member to a channel
+  * Requires (TOKEN, email, password, name)
+  * Returns (DATA)
+*/
+router.post("/channels/manager/remove-member", verifyRequest, (req, res) => {
+  const user_id = req.body._id;
+
+  if( user_id === undefined) return res.json({
+    error: true,
+    mssg: "invalid Request"
+  });
+
+  dbo_users.collection(TABLE_USERS_ADMIN).remove({
+    _id : user_id,
+  }, (err) => {
+    if(err) 
+      return res.json({
+        error: true,
+        mssg: err
+      });
+    return res.json({
+      error: false,
     });
   });
 });
@@ -497,7 +514,9 @@ router.post("/channels/manager/fetch-channel-data", verifyRequest, (req, res) =>
         media: 1,
         private : 1,
         followers: { $size: "$followers" },
+        social_link : 1,
         streak : 1,
+        authority : 1,
         reactions : 1
       }
     };
@@ -528,6 +547,30 @@ router.post("/channels/manager/fetch-channel-data", verifyRequest, (req, res) =>
   });
 });
 
+router.post("/channels/manager/update-channel", verifyRequest, (req, res) => {
+  const decoded = req.decoded;
+  const _id = decoded.channel;
+
+  const description = req.body.description;
+  const social_link = req.body.social_link;
+
+  console.log(_id, description, social_link);
+
+  if ( _id === undefined  || description  === undefined || social_link === undefined ) return res.json({
+    error: true,
+    mssg: "invalid request"
+  });
+
+  dbo_static.collection(TABLE_CHANNELS).update({ _id}, { $set : { description, social_link} }, (err) => {
+    if(err) return res.json({
+      error : true
+    });
+    return res.json({
+      error : false
+    });
+  });
+});
+
 /*
   * Function to update channel with new timestamp & last updates.
 */
@@ -540,7 +583,7 @@ function updateChannel(_id, callback){
       let diff = (constants.STORIES_VALID_THRESHOLD *  24 * 60 * 60 * 1000) - (cs - ts);
       let streak;
       if(diff > 0){
-        streak = result.streak === undefined ? 0 : result.streak;
+        streak = result.streak === undefined ? 1 : result.streak + 1;
       } else {
         streak = 0;
       }
