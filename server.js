@@ -109,55 +109,9 @@ Promise.all([db_diagnostics, db_activities, db_users, db_static, db_events, db_n
     console.log(err);
   });
 
-// db.connectToServer( function( err ) {
-//   if (err) {
-//     console.log("Unable to connect to MongoDB.");
-//     process.exit(1);
-//   } else {
-//     const notifications_manager = require("./api/notifications/notifications_manager");
-//     const notifications_user = require("./api/notifications/notifications_user");
-//     const events_crud = require("./api/events/events_crud");
-//     const events_user = require("./api/events/events_user");
-//     const events_manager = require("./api/events/events_manager");
-//     const channels = require("./api/channels/channels_crud");
-//     const channels_user = require("./api/channels/channels_user");
-//     const users_crud = require("./api/users/users_crud");
-//     const channels_manager = require("./api/channels/channels_manager");
-//     const auth = require("./api/auth/auth");
-//     const manager = require("./api/manager/manager");
-//     const others = require("./api/other/others");
-//     const admin = require("./api/admin/admin");
-//     const router = express.Router();
- 
-//     //api specific routes
-//     router.get("*", function(req, res) {
-//       res.sendFile(path.resolve(__dirname,"public/index.html"));
-//     });
-    
-//     app.use("/", events_crud);
-//     app.use("/", events_user);
-//     app.use("/", events_manager);
-//     app.use("/", channels);
-//     app.use("/", channels_user);
-//     app.use("/", channels_manager);
-//     app.use("/", users_crud);
-//     app.use("/", auth);
-//     app.use("/", manager);
-//     app.use("/", others);
-//     app.use("/", admin);
-//     app.use("/", notifications_manager);
-//     app.use("/", notifications_user);
-//     app.use("/admin", router);
-    
-//     app.listen(PORT, HOST, () => {
-//       console.log("Dock API Server is live on http://"+HOST+":"+PORT);
-//     });
-//   }
-// });
-
 /*  
   * USERNAME : ssh -p 7822 mycampu1@mycampusdock.com
-  * USERNAME_ALT : ssh -p 7822 mycampus@mycampusdock.chat
+  * USERNAME_ALT : ssh -p 7822 mycampus@mycampusdock.chat ==> 0Hh.b0T!a8F3yX
   * PASSWORD : YOU ALREADY KNOW IF YOU HAVE ACCESS TO THESE FILES!
   * ogil7190 : sha1$ec32d226$1$f970204d1702048853bd67864e43e1b581bc6327
 */

@@ -33,7 +33,7 @@ exports.sendEmailHtml = function(reciever, subject, html, callback) {
     html
   };
   smtpTransport.sendMail(mailOptions, function(error) {
-    callback(error);
+    if(callback) callback(error);
   });
 };
 
