@@ -370,6 +370,7 @@ router.post("/channels/user/fetch-channel-data", verifyRequest, (req, res) => {
       creator : 1,
       reactions : 1,
       priority : 1,
+      social_link : 1,
       private : 1,
       college: 1
     }
