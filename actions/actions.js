@@ -21,7 +21,7 @@ const smtpTransport = nodemailer.createTransport({
   secure: true,
   auth: {
     user: "admin@mycampusdock.chat",
-    pass: "D@ckD@ck"
+    pass: "d2ckd2ck@cs"
   }
 });
 
