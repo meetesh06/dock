@@ -37,6 +37,18 @@ exports.sendEmailHtml = function(reciever, subject, html, callback) {
   });
 };
 
+exports.gotEmail = function(from, name, subject, text, callback) {
+  var mailOptions = {
+    from,
+    to: "admin@mycampusdock.chat",
+    subject: name + " : " + subject,
+    text
+  };
+  smtpTransport.sendMail(mailOptions, function(error) {
+    if(callback) callback(error);
+  });
+};
+
 const UID_func = function(length) {
   var text = "";
   var possible = "0123456789ABCD7EFGHIJ6KLMNO8PQRSTUVW8XYZabcd8efghijklmnopqrstuvwxyz0123456789";

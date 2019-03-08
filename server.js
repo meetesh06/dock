@@ -79,10 +79,10 @@ Promise.all([db_diagnostics, db_activities, db_users, db_static, db_events, db_n
     const manager = require("./api/manager/manager");
     const others = require("./api/other/others");
     const admin = require("./api/admin/admin");
-    const router = express.Router();
+    const routerUser = express.Router();
 
     //api specific routes
-    router.get("/*", function(req, res) {
+    routerUser.get("*", function(req, res) {
       res.sendFile(path.resolve(__dirname,"public/index.html"));
     });
   
@@ -99,7 +99,7 @@ Promise.all([db_diagnostics, db_activities, db_users, db_static, db_events, db_n
     app.use("/", admin);
     app.use("/", notifications_manager);
     app.use("/", notifications_user);
-    app.use("/admin", router);
+    app.use("/", routerUser);
   
     app.listen(PORT, HOST, () => {
       console.log("Campus Story API Server is live on http://"+HOST+":"+PORT);
