@@ -44,7 +44,7 @@ readDir(path.join(__dirname, "actions/media")).forEach(function (name) {
 app.use((req, res, next) => {
   const range = req.headers.range;
   console.log("video request",range);
-  if (range) {
+  if (range && files[req.path]) {
     const bufferStream = new stream.PassThrough();
     bufferStream.end(files[req.path]);
     bufferStream.pipe(res)
@@ -70,6 +70,16 @@ app.use((req, res, next) => {
     // var file = fs.createReadStream(path, {start: start, end: end});
     // res.writeHead(206, { 'Content-Range': 'bytes ' + start + '-' + end + '/' + total, 'Accept-Ranges': 'bytes', 'Content-Length': chunksize, 'Content-Type': 'video/mp4' });
     // file.pipe(res);
+  } else if(range) {
+    const pathname = "/" + req.path.slice(1);
+    const obj = {};
+    const filename = obj.path = path.join(path.join(__dirname, "actions/media"), req.path.slice(1));
+    const type = mime.getType(filename);
+    const buffer = fs.readFileSync(filename);
+    if(type.includes("video")) {
+      files[pathname] = buffer;
+    }
+    next();
   } else {
     next();
   }
