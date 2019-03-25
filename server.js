@@ -1,6 +1,7 @@
 /* MAIN */
 const express = require("express");
 const fileUpload = require("express-fileupload");
+const fs = require("fs");
 const PORT = 65534;
 const HOST = "127.0.0.1";
 // const db = require("./db");
@@ -14,6 +15,30 @@ const db_notifications_conn = require("./db_notifications");
 
 const app = express();
 const path = require("path");
+
+app.use((req, res, next) => {
+  const range = req.headers.range
+  console.log(range);
+  if (range) {
+    const path = 'actions/media' + req.path;
+    var stat = fs.statSync(path);
+    var total = stat.size;
+    var parts = range.replace(/bytes=/, "").split("-");
+    var partialstart = parts[0];
+    var partialend = parts[1];
+
+    var start = parseInt(partialstart, 10);
+    var end = partialend ? parseInt(partialend, 10) : total-1;
+    var chunksize = (end-start)+1;
+    console.log('RANGE: ' + start + ' - ' + end + ' = ' + chunksize);
+
+    var file = fs.createReadStream(path, {start: start, end: end});
+    res.writeHead(206, { 'Content-Range': 'bytes ' + start + '-' + end + '/' + total, 'Accept-Ranges': 'bytes', 'Content-Length': chunksize, 'Content-Type': 'video/mp4' });
+    file.pipe(res);
+  } else {
+    next();
+  }
+});
 
 app.use(express.static("email_resources"));
 app.use(express.static("actions/media"));
