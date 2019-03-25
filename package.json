@@ -17,16 +17,19 @@
     "express-fileupload": "^0.4.0",
     "express-subdomain": "^1.0.5",
     "firebase-admin": "^5.13.0",
+    "fs-readdir-recursive": "^1.1.0",
     "google-auth-library": "^2.0.0",
     "hat": "0.0.3",
     "imagemin": "^5.3.1",
     "imagemin-mozjpeg": "^7.0.0",
     "imagemin-webp": "^4.1.0",
     "jsonwebtoken": "^8.3.0",
+    "mime": "^2.4.0",
     "moment": "^2.24.0",
     "mongodb": "^3.1.13",
     "nodemailer": "^4.6.7",
-    "password-hash": "^1.2.2"
+    "password-hash": "^1.2.2",
+    "stream": "0.0.2"
   },
   "devDependencies": {
     "eslint": "^5.1.0",

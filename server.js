@@ -2,6 +2,10 @@
 const express = require("express");
 const fileUpload = require("express-fileupload");
 const fs = require("fs");
+const readDir = require("fs-readdir-recursive");
+const path = require("path");
+const mime = require("mime");
+const stream = require("stream");
 const PORT = 65534;
 const HOST = "127.0.0.1";
 // const db = require("./db");
@@ -14,33 +18,62 @@ const db_events_conn = require("./db_events");
 const db_notifications_conn = require("./db_notifications");
 
 const app = express();
-const path = require("path");
+const files = {};
 
-// app.use((req, res, next) => {
-//   const range = req.headers.range
-//   console.log(range);
-//   if (range) {
-//     const path = 'actions/media' + req.path;
-//     var stat = fs.statSync(path);
-//     var total = stat.size;
-//     var parts = range.replace(/bytes=/, "").split("-");
-//     var partialstart = parts[0];
-//     var partialend = parts[1];
+function toArrayBuffer(buf) {
+  var ab = new ArrayBuffer(buf.length);
+  var view = new Uint8Array(ab);
+  for (var i = 0; i < buf.length; ++i) {
+    view[i] = buf[i];
+  }
+  return ab;
+}
 
-//     var start = parseInt(partialstart, 10);
-//     // var end = partialend ? parseInt(partialend, 10) : total-1;
-//     // var end = partialend ? parseInt(partialend, 10) : start + ( start + 1000 );
-//     var end = start + parseInt(total/12);
-//     var chunksize = (end-start)+1;
-//     console.log('RANGE: ' + start + ' - ' + end + ' = ' + chunksize);
+readDir(path.join(__dirname, "actions/media")).forEach(function (name) {
+  const pathname = "/" + name;
+  const obj = {};
+  const filename = obj.path = path.join(path.join(__dirname, "actions/media"), name);
+  
+  const type = mime.getType(filename);
+  const buffer = fs.readFileSync(filename);
+  if(type.includes("video")) {
+    files[pathname] = buffer;
+  }
+});
 
-//     var file = fs.createReadStream(path, {start: start, end: end});
-//     res.writeHead(206, { 'Content-Range': 'bytes ' + start + '-' + end + '/' + total, 'Accept-Ranges': 'bytes', 'Content-Length': chunksize, 'Content-Type': 'video/mp4' });
-//     file.pipe(res);
-//   } else {
-//     next();
-//   }
-// });
+app.use((req, res, next) => {
+  const range = req.headers.range;
+  console.log("video request",range);
+  if (range) {
+    const bufferStream = new stream.PassThrough();
+    bufferStream.end(files[req.path]);
+    bufferStream.pipe(res)
+      .on("complete", function(job) {
+        job
+          .on("error", console.log)
+          .on("complete", function(metadata) {
+            console.log("job completed", metadata);
+          });
+      });
+    // var stat = fs.statSync(path);
+    // var total = stat.size;
+    // var parts = range.replace(/bytes=/, "").split("-");
+    // var partialstart = parts[0];
+    // var partialend = parts[1];
+
+    // var start = parseInt(partialstart, 10);
+    // var end = partialend ? parseInt(partialend, 10) : total-1;
+
+    // var chunksize = (end-start)+1;
+    // console.log('RANGE: ' + start + ' - ' + end + ' = ' + chunksize);
+
+    // var file = fs.createReadStream(path, {start: start, end: end});
+    // res.writeHead(206, { 'Content-Range': 'bytes ' + start + '-' + end + '/' + total, 'Accept-Ranges': 'bytes', 'Content-Length': chunksize, 'Content-Type': 'video/mp4' });
+    // file.pipe(res);
+  } else {
+    next();
+  }
+});
 
 app.use(express.static("email_resources"));
 app.use(express.static("actions/media"));
