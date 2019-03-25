@@ -30,7 +30,7 @@ app.use((req, res, next) => {
     var start = parseInt(partialstart, 10);
     // var end = partialend ? parseInt(partialend, 10) : total-1;
     // var end = partialend ? parseInt(partialend, 10) : start + ( start + 1000 );
-    var end = start + 1000000;
+    var end = start + parseInt(total/12);
     var chunksize = (end-start)+1;
     console.log('RANGE: ' + start + ' - ' + end + ' = ' + chunksize);
 
