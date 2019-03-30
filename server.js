@@ -29,61 +29,61 @@ function toArrayBuffer(buf) {
   return ab;
 }
 
-readDir(path.join(__dirname, "actions/media")).forEach(function (name) {
-  const pathname = "/" + name;
-  const obj = {};
-  const filename = obj.path = path.join(path.join(__dirname, "actions/media"), name);
+// readDir(path.join(__dirname, "actions/media")).forEach(function (name) {
+//   const pathname = "/" + name;
+//   const obj = {};
+//   const filename = obj.path = path.join(path.join(__dirname, "actions/media"), name);
   
-  const type = mime.getType(filename);
-  const buffer = fs.readFileSync(filename);
-  if(type.includes("video")) {
-    files[pathname] = buffer;
-  }
-});
+//   const type = mime.getType(filename);
+//   const buffer = fs.readFileSync(filename);
+//   if(type.includes("video")) {
+//     files[pathname] = buffer;
+//   }
+// });
 
-app.use((req, res, next) => {
-  const range = req.headers.range;
-  console.log("video request",range);
-  if (range && files[req.path]) {
-    const bufferStream = new stream.PassThrough();
-    bufferStream.end(files[req.path]);
-    bufferStream.pipe(res)
-      .on("complete", function(job) {
-        job
-          .on("error", console.log)
-          .on("complete", function(metadata) {
-            console.log("job completed", metadata);
-          });
-      });
-    // var stat = fs.statSync(path);
-    // var total = stat.size;
-    // var parts = range.replace(/bytes=/, "").split("-");
-    // var partialstart = parts[0];
-    // var partialend = parts[1];
+// app.use((req, res, next) => {
+//   const range = req.headers.range;
+//   console.log("video request",range);
+//   if (range && files[req.path]) {
+//     const bufferStream = new stream.PassThrough();
+//     bufferStream.end(files[req.path]);
+//     bufferStream.pipe(res)
+//       .on("complete", function(job) {
+//         job
+//           .on("error", console.log)
+//           .on("complete", function(metadata) {
+//             console.log("job completed", metadata);
+//           });
+//       });
+//     // var stat = fs.statSync(path);
+//     // var total = stat.size;
+//     // var parts = range.replace(/bytes=/, "").split("-");
+//     // var partialstart = parts[0];
+//     // var partialend = parts[1];
 
-    // var start = parseInt(partialstart, 10);
-    // var end = partialend ? parseInt(partialend, 10) : total-1;
+//     // var start = parseInt(partialstart, 10);
+//     // var end = partialend ? parseInt(partialend, 10) : total-1;
 
-    // var chunksize = (end-start)+1;
-    // console.log('RANGE: ' + start + ' - ' + end + ' = ' + chunksize);
+//     // var chunksize = (end-start)+1;
+//     // console.log('RANGE: ' + start + ' - ' + end + ' = ' + chunksize);
 
-    // var file = fs.createReadStream(path, {start: start, end: end});
-    // res.writeHead(206, { 'Content-Range': 'bytes ' + start + '-' + end + '/' + total, 'Accept-Ranges': 'bytes', 'Content-Length': chunksize, 'Content-Type': 'video/mp4' });
-    // file.pipe(res);
-  } else if(range) {
-    const pathname = "/" + req.path.slice(1);
-    const obj = {};
-    const filename = obj.path = path.join(path.join(__dirname, "actions/media"), req.path.slice(1));
-    const type = mime.getType(filename);
-    const buffer = fs.readFileSync(filename);
-    if(type.includes("video")) {
-      files[pathname] = buffer;
-    }
-    next();
-  } else {
-    next();
-  }
-});
+//     // var file = fs.createReadStream(path, {start: start, end: end});
+//     // res.writeHead(206, { 'Content-Range': 'bytes ' + start + '-' + end + '/' + total, 'Accept-Ranges': 'bytes', 'Content-Length': chunksize, 'Content-Type': 'video/mp4' });
+//     // file.pipe(res);
+//   } else if(range) {
+//     const pathname = "/" + req.path.slice(1);
+//     const obj = {};
+//     const filename = obj.path = path.join(path.join(__dirname, "actions/media"), req.path.slice(1));
+//     const type = mime.getType(filename);
+//     const buffer = fs.readFileSync(filename);
+//     if(type.includes("video")) {
+//       files[pathname] = buffer;
+//     }
+//     next();
+//   } else {
+//     next();
+//   }
+// });
 
 app.use(express.static("email_resources"));
 app.use(express.static("actions/media"));
